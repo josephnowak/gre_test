@@ -17,6 +17,7 @@
       <nav class="side-nav" aria-label="Primary">
         <button class="nav-link active" type="button" data-target="home-panel">Home</button>
         <button class="nav-link" type="button" data-target="tests-panel">Tests</button>
+        <button class="nav-link" type="button" data-target="sessions-panel">In Progress</button>
         <button class="nav-link" type="button" data-target="scores-panel">Scores</button>
       </nav>
 
@@ -56,7 +57,7 @@
             <div class="home-metrics">
               <article>
                 <span>Tests</span>
-                <strong>10</strong>
+                <strong>15</strong>
                 <small>Full GRE-style sets</small>
               </article>
               <article>
@@ -116,6 +117,17 @@
               <span>Mode</span>
             </div>
             <div id="test-list" class="test-list" aria-live="polite"></div>
+          </section>
+
+          <section id="sessions-panel" class="dashboard-panel dashboard-card sessions-panel hidden">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Saved sessions</p>
+                <h2>In progress tests</h2>
+              </div>
+            </div>
+
+            <div id="session-list" class="session-list" aria-live="polite"></div>
           </section>
 
           <section id="scores-panel" class="dashboard-panel dashboard-card scores-panel hidden">
@@ -185,7 +197,11 @@
                 <p id="active-test-name" class="eyebrow">Practice Test</p>
                 <h2 id="section-title">Section title</h2>
               </div>
-              <div class="progress-copy" id="progress-copy">Question 1 of 1</div>
+              <div class="exam-header-actions">
+                <div class="progress-copy" id="progress-copy">Question 1 of 1</div>
+                <button id="exit-test" class="danger-button" type="button">Exit</button>
+                <button id="finish-section" class="primary-button" type="button">Finish Section</button>
+              </div>
             </div>
 
             <div class="question-layout">
@@ -212,10 +228,6 @@
               </article>
             </div>
 
-            <footer class="section-actions">
-              <button id="exit-test" class="danger-button" type="button">Exit</button>
-              <button id="finish-section" class="primary-button" type="button">Finish Section</button>
-            </footer>
           </section>
         </section>
 

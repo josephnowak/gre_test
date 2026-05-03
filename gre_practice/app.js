@@ -1385,6 +1385,34 @@ const TEST_FOCUSES = [
   }
 ];
 
+const OFFICIAL_STYLE_TEST_FOCUSES = [
+  {
+    label: "Official-style mixed practice A",
+    description: "Balanced GRE-style practice with no single topic focus: verbal reasoning, quantitative comparison, problem solving, data interpretation, and writing.",
+    quantFocus: "mixed"
+  },
+  {
+    label: "Official-style mixed practice B",
+    description: "A general GRE-style test built to feel like a full exam section set rather than a targeted drill.",
+    quantFocus: "mixed"
+  },
+  {
+    label: "Official-style mixed practice C",
+    description: "Mixed practice across the standard GRE question formats, with quantitative topics distributed across arithmetic, algebra, geometry, and data.",
+    quantFocus: "mixed"
+  },
+  {
+    label: "Official-style mixed practice D",
+    description: "Full mixed GRE-style practice emphasizing realistic section balance instead of any one content area.",
+    quantFocus: "mixed"
+  },
+  {
+    label: "Official-style mixed practice E",
+    description: "General GRE-style practice with varied verbal passages, vocabulary questions, quantitative comparisons, numeric entry, and data interpretation.",
+    quantFocus: "mixed"
+  }
+];
+
 const vocabularyWords = [
   {
     word: "baffled",
@@ -1789,12 +1817,12 @@ const vocabularyWords = [
 ];
 
 function buildTests() {
-  return Array.from({ length: 10 }, (_, index) => buildTest(index));
+  return Array.from({ length: 15 }, (_, index) => buildTest(index));
 }
 
 function buildTest(testIndex) {
   const oneBased = testIndex + 1;
-  const focus = TEST_FOCUSES[testIndex % TEST_FOCUSES.length];
+  const focus = getTestFocus(testIndex);
     return {
       id: `test-${oneBased}`,
       name: `Practice Test ${oneBased}`,
@@ -1809,6 +1837,11 @@ function buildTest(testIndex) {
       buildQuantSection(testIndex, 2, 15, focus)
     ]
   };
+}
+
+function getTestFocus(testIndex) {
+  if (testIndex < TEST_FOCUSES.length) return TEST_FOCUSES[testIndex];
+  return OFFICIAL_STYLE_TEST_FOCUSES[(testIndex - TEST_FOCUSES.length) % OFFICIAL_STYLE_TEST_FOCUSES.length];
 }
 
 function buildWritingSection(testIndex) {
@@ -2951,8 +2984,10 @@ function qcAnswerText(answer) {
 
 const tests = buildTests();
 const SCORE_HISTORY_KEY = "grePracticeScoreHistory";
+const SESSION_STORAGE_KEY = "grePracticeSessions";
 const state = {
   selectedTest: null,
+  currentSessionId: null,
   currentSectionIndex: 0,
   currentQuestionIndex: 0,
   answers: {},
@@ -2984,6 +3019,7 @@ const els = {
   homeStartTests: document.getElementById("home-start-tests"),
   homeViewScores: document.getElementById("home-view-scores"),
   testList: document.getElementById("test-list"),
+  sessionList: document.getElementById("session-list"),
   testSearch: document.getElementById("test-search"),
   sectionFilter: document.getElementById("section-filter"),
   focusFilter: document.getElementById("focus-filter"),
@@ -3025,6 +3061,7 @@ const els = {
 
 function init() {
   renderTestList();
+  renderSessionList();
   renderScoresDashboard();
   bindEvents();
 }
@@ -3179,9 +3216,144 @@ function formatMinutes(totalMinutes) {
   return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
+function renderSessionList() {
+  const sessions = loadSessions();
+  if (!sessions.length) {
+    els.sessionList.innerHTML = `<div class="empty-state">No tests are in progress. Exit a practice test to save it here.</div>`;
+    return;
+  }
+
+  els.sessionList.innerHTML = "";
+  sessions.forEach(session => {
+    const test = tests.find(item => item.id === session.testId);
+    if (!test) return;
+    const section = test.sections[session.currentSectionIndex] || test.sections[0];
+    const totalQuestions = test.sections.reduce((total, item) => total + item.count, 0);
+    const answeredCount = Object.keys(session.answers || {}).filter(questionId => {
+      const answer = session.answers[questionId];
+      if (Array.isArray(answer)) return answer.length > 0;
+      return answer !== undefined && String(answer).trim() !== "";
+    }).length;
+    const updated = new Date(session.updatedAt);
+    const card = document.createElement("article");
+    card.className = "session-card";
+    card.innerHTML = `
+      <div>
+        <p class="eyebrow">${escapeHtml(session.mode || "Practice")} session</p>
+        <h3>${escapeHtml(test.name)}</h3>
+        <p>${escapeHtml(test.focus)}</p>
+      </div>
+      <div class="session-meta">
+        <span>${escapeHtml(section.label)}</span>
+        <span>Question ${session.currentQuestionIndex + 1}</span>
+        <span>${answeredCount}/${totalQuestions} answered</span>
+        <span>${Number.isNaN(updated.getTime()) ? "" : updated.toLocaleString()}</span>
+      </div>
+      <div class="session-actions">
+        <button class="secondary-button" type="button" data-action="delete">Delete</button>
+        <button class="primary-button" type="button" data-action="resume">Resume</button>
+      </div>
+    `;
+    card.querySelector('[data-action="resume"]').addEventListener("click", () => resumeSession(session.id));
+    card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteSession(session.id));
+    els.sessionList.appendChild(card);
+  });
+}
+
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSessions(sessions) {
+  try {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessions));
+  } catch {
+    // Session saving is best effort; the app should still run without local storage.
+  }
+}
+
+function saveCurrentSession() {
+  if (!state.selectedTest || state.realMode) return null;
+  const now = new Date().toISOString();
+  const sessionId = state.currentSessionId || `${Date.now()}-${state.selectedTest.id}`;
+  const session = {
+    id: sessionId,
+    testId: state.selectedTest.id,
+    mode: state.realMode ? "Real" : "Practice",
+    currentSectionIndex: state.currentSectionIndex,
+    currentQuestionIndex: state.currentQuestionIndex,
+    answers: state.answers,
+    marked: state.marked,
+    sectionTimers: state.sectionTimers,
+    completedSections: [...state.completedSections],
+    timerPaused: true,
+    createdAt: state.currentSessionId
+      ? loadSessions().find(item => item.id === state.currentSessionId)?.createdAt || now
+      : now,
+    updatedAt: now
+  };
+  const sessions = loadSessions().filter(item => item.id !== sessionId);
+  sessions.unshift(session);
+  saveSessions(sessions.slice(0, 20));
+  state.currentSessionId = sessionId;
+  renderSessionList();
+  return sessionId;
+}
+
+function resumeSession(sessionId) {
+  const session = loadSessions().find(item => item.id === sessionId);
+  const test = session ? tests.find(item => item.id === session.testId) : null;
+  if (!session || !test) return;
+
+  clearInterval(state.timerId);
+  state.selectedTest = cloneTest(test);
+  state.currentSessionId = session.id;
+  state.currentSectionIndex = clampIndex(session.currentSectionIndex, state.selectedTest.sections.length);
+  const section = state.selectedTest.sections[state.currentSectionIndex];
+  state.currentQuestionIndex = clampIndex(session.currentQuestionIndex, section.questions.length);
+  state.answers = session.answers || {};
+  state.marked = session.marked || {};
+  state.sectionTimers = Array.isArray(session.sectionTimers)
+    ? session.sectionTimers.map(value => Math.max(0, Number(value) || 0))
+    : state.selectedTest.sections.map(item => item.minutes * 60);
+  state.completedSections = new Set(Array.isArray(session.completedSections) ? session.completedSections : []);
+  state.realMode = session.mode === "Real";
+  state.testInProgress = true;
+  state.currentResultSaved = false;
+  state.timerPaused = true;
+  state.reviewQuestionId = null;
+  showScreen("exam");
+  startTimer();
+  renderExam();
+}
+
+function deleteSession(sessionId) {
+  saveSessions(loadSessions().filter(session => session.id !== sessionId));
+  renderSessionList();
+}
+
+function removeCurrentSession() {
+  if (!state.currentSessionId) return;
+  deleteSession(state.currentSessionId);
+  state.currentSessionId = null;
+}
+
+function clampIndex(index, length) {
+  const value = Number(index);
+  if (!Number.isInteger(value)) return 0;
+  return Math.min(Math.max(value, 0), Math.max(length - 1, 0));
+}
+
 function startTest(testId, initialSectionIndex = 0, options = {}) {
   const test = tests.find(item => item.id === testId);
   state.selectedTest = cloneTest(test);
+  state.currentSessionId = null;
   state.currentSectionIndex = 0;
   state.currentQuestionIndex = 0;
   state.answers = {};
@@ -3516,6 +3688,7 @@ function findNextUncompletedSection() {
 function showSummary() {
   clearInterval(state.timerId);
   state.testInProgress = false;
+  removeCurrentSession();
   saveCurrentScore();
   showScreen("summary");
   els.summaryTestName.textContent = state.selectedTest.name;
@@ -3897,17 +4070,23 @@ function showScreen(screen) {
   els.startScreen.classList.toggle("hidden", screen !== "start");
   els.examScreen.classList.toggle("hidden", screen !== "exam");
   els.summaryScreen.classList.toggle("hidden", screen !== "summary");
-  if (screen === "start") renderScoresDashboard();
+  if (screen === "start") {
+    renderSessionList();
+    renderScoresDashboard();
+  }
 }
 
 function exitToStart() {
   if (state.realMode && state.testInProgress) return;
+  if (state.testInProgress) saveCurrentSession();
   clearInterval(state.timerId);
   state.selectedTest = null;
+  state.currentSessionId = null;
   state.realMode = false;
   state.testInProgress = false;
   state.currentResultSaved = false;
   showScreen("start");
+  activatePanel("sessions-panel");
 }
 
 function retakeCurrentTest() {
