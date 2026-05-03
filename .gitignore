@@ -1,0 +1,10 @@
+# IDE and local build output
+.idea/
+cmake-build-*/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+

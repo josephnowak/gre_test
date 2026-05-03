@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GRE Practice Tests</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app app-shell">
+    <aside class="site-sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">G</span>
+        <strong>GREPractice</strong>
+      </div>
+
+      <nav class="side-nav" aria-label="Primary">
+        <button class="nav-link active" type="button" data-target="home-panel">Home</button>
+        <button class="nav-link" type="button" data-target="tests-panel">Tests</button>
+        <button class="nav-link" type="button" data-target="scores-panel">Scores</button>
+      </nav>
+
+      <div class="sidebar-note">
+        <strong>100% free.</strong>
+        <span>Section-timed practice with review, explanations, and saved score history.</span>
+      </div>
+    </aside>
+
+    <div class="shell-main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">GRE Practice</p>
+          <h1>Section-timed practice tests</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="top-start-tests" class="primary-button" type="button">Start a Test</button>
+          <button id="top-view-scores" class="secondary-button" type="button">View Scores</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="start-screen" class="screen start-screen">
+          <section id="home-panel" class="dashboard-panel home-panel">
+            <article class="hero-panel">
+              <div>
+                <p class="section-label">Dashboard</p>
+                <h2>High-quality GRE practice, organized by goal.</h2>
+                <p class="hero-copy">Choose a targeted test, run it in flexible practice mode, or switch on real mode when you want stricter timing.</p>
+              </div>
+              <div class="hero-actions">
+                <button id="home-start-tests" class="primary-button" type="button">Find a Test</button>
+                <button id="home-view-scores" class="secondary-button" type="button">Review Scores</button>
+              </div>
+            </article>
+
+            <div class="home-metrics">
+              <article>
+                <span>Tests</span>
+                <strong>10</strong>
+                <small>Full GRE-style sets</small>
+              </article>
+              <article>
+                <span>Sections</span>
+                <strong>5</strong>
+                <small>Writing, verbal, and quant</small>
+              </article>
+              <article>
+                <span>Modes</span>
+                <strong>2</strong>
+                <small>Practice or real mode</small>
+              </article>
+            </div>
+          </section>
+
+          <section id="tests-panel" class="dashboard-panel dashboard-card tests-panel hidden">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Practice tests</p>
+                <h2>Find the right test for today</h2>
+              </div>
+              <button id="reset-filters" class="secondary-button" type="button">Reset Filters</button>
+            </div>
+
+            <div class="filter-bar" aria-label="Test filters">
+              <label>
+                <span>Search</span>
+                <input id="test-search" type="search" placeholder="Search tests...">
+              </label>
+              <label>
+                <span>Section</span>
+                <select id="section-filter">
+                  <option value="all">All sections</option>
+                  <option value="writing">Writing</option>
+                  <option value="verbal">Verbal</option>
+                  <option value="quant">Quant</option>
+                  <option value="mixed">Mixed full test</option>
+                </select>
+              </label>
+              <label>
+                <span>Focus area</span>
+                <select id="focus-filter">
+                  <option value="all">All focus areas</option>
+                  <option value="mixed">Mixed review</option>
+                  <option value="geometry">Geometry</option>
+                  <option value="algebra">Algebra</option>
+                  <option value="arithmetic">Arithmetic</option>
+                  <option value="data">Data and statistics</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="test-table-heading" aria-hidden="true">
+              <span>Test</span>
+              <span>Sections</span>
+              <span>Focus</span>
+              <span>Mode</span>
+            </div>
+            <div id="test-list" class="test-list" aria-live="polite"></div>
+          </section>
+
+          <section id="scores-panel" class="dashboard-panel dashboard-card scores-panel hidden">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Scores</p>
+                <h2>Score history and trends</h2>
+              </div>
+              <button id="clear-scores" class="secondary-button" type="button">Clear Scores</button>
+            </div>
+
+            <div id="score-overview" class="score-cards"></div>
+
+            <div class="scores-grid">
+              <article class="chart-card">
+                <div>
+                  <p class="section-label">Accuracy trend</p>
+                  <h3>Completed tests</h3>
+                </div>
+                <div id="score-trend-chart" class="line-chart"></div>
+              </article>
+              <article class="chart-card">
+                <div>
+                  <p class="section-label">Section balance</p>
+                  <h3>Verbal vs. quant</h3>
+                </div>
+                <div id="section-bar-chart" class="bar-chart"></div>
+              </article>
+            </div>
+
+            <div>
+              <p class="section-label">Recent tests</p>
+              <div id="score-history" class="score-history"></div>
+            </div>
+          </section>
+        </section>
+
+        <section id="exam-screen" class="screen exam-screen hidden">
+          <aside class="section-sidebar">
+            <div class="timer-card">
+              <div class="timer-card-header">
+                <p class="section-label" id="timer-section">Section</p>
+                <span id="exam-mode-badge" class="mode-badge">Practice</span>
+              </div>
+              <div id="timer" class="timer">00:00</div>
+              <div class="timer-controls">
+                <button id="pause-timer" class="secondary-button" type="button">Pause</button>
+                <button id="resume-timer" class="secondary-button" type="button">Resume</button>
+              </div>
+              <p id="real-mode-copy" class="mode-copy hidden">Real mode is active: the timer cannot be paused and the test cannot be exited until completion.</p>
+            </div>
+
+            <div class="side-card">
+              <p class="section-label">Sections</p>
+              <ol id="section-nav" class="section-nav"></ol>
+            </div>
+
+            <div class="side-card mark-explainer">
+              <p class="section-label">Mark</p>
+              <p>The Mark button flags a question so you can return to it before finishing the section. It does not select an answer and does not change your score.</p>
+            </div>
+          </aside>
+
+          <section class="question-area">
+            <div class="exam-meta">
+              <div>
+                <p id="active-test-name" class="eyebrow">Practice Test</p>
+                <h2 id="section-title">Section title</h2>
+              </div>
+              <div class="progress-copy" id="progress-copy">Question 1 of 1</div>
+            </div>
+
+            <div class="question-layout">
+              <nav id="question-nav" class="question-nav" aria-label="Questions in section"></nav>
+
+              <article class="question-panel">
+                <div class="question-header">
+                  <div>
+                    <p id="question-type" class="section-label">Question type</p>
+                    <h3 id="question-heading">Question</h3>
+                  </div>
+                  <button id="hint-button" class="hint-button" type="button">Suggestion</button>
+                </div>
+
+                <div id="hint-panel" class="hint-panel hidden"></div>
+                <div id="question-content" class="question-content"></div>
+                <div id="answer-area" class="answer-area"></div>
+
+                <div class="question-actions">
+                  <button id="prev-question" class="secondary-button" type="button">Previous</button>
+                  <button id="mark-question" class="secondary-button" type="button">Mark</button>
+                  <button id="next-question" class="primary-button" type="button">Next</button>
+                </div>
+              </article>
+            </div>
+
+            <footer class="section-actions">
+              <button id="exit-test" class="danger-button" type="button">Exit</button>
+              <button id="finish-section" class="primary-button" type="button">Finish Section</button>
+            </footer>
+          </section>
+        </section>
+
+        <section id="summary-screen" class="screen summary-screen hidden">
+          <div class="summary-header">
+            <div>
+              <p id="summary-test-name" class="eyebrow">Practice Test</p>
+              <h2>Test Summary</h2>
+            </div>
+            <div class="summary-actions">
+              <button id="retake-test" class="secondary-button" type="button">Retake Test</button>
+              <button id="choose-test" class="primary-button" type="button">Choose Another Test</button>
+            </div>
+          </div>
+
+          <div id="score-cards" class="score-cards"></div>
+
+          <div class="review-layout">
+            <aside>
+              <p class="section-label">Review</p>
+              <div id="review-list" class="review-list"></div>
+            </aside>
+            <article id="review-detail" class="review-detail">
+              <p class="muted">Select a question to review the correct answer and solution.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
