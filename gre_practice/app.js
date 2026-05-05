@@ -1336,52 +1336,62 @@ const TEST_FOCUSES = [
   {
     label: "Mixed Quant foundations",
     description: "Balanced practice across quantitative comparison, algebra, geometry, probability, statistics, and data interpretation.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   },
   {
     label: "Geometry: lines and angles",
     description: "Extra focus on line intersections, vertical angles, supplementary angles, parallel lines, and slope.",
-    quantFocus: "geometry-lines"
+    quantFocus: "geometry-lines",
+    complexity: "Medium"
   },
   {
     label: "Geometry: triangles",
     description: "Extra focus on triangle inequality, similar triangles, coordinate-area graphs, right-triangle altitude, and equilateral area.",
-    quantFocus: "geometry-triangles"
+    quantFocus: "geometry-triangles",
+    complexity: "Hard"
   },
   {
     label: "Geometry: 3D shapes",
     description: "Extra focus on nested solids, inscribed spheres, cylindrical cavities, surface area, volume, and space diagonals.",
-    quantFocus: "geometry-3d"
+    quantFocus: "geometry-3d",
+    complexity: "Hard"
   },
   {
     label: "Algebra and equations",
     description: "Extra focus on quadratic formulas, completing the square, polynomial factors, inequalities, functions, and sequences.",
-    quantFocus: "algebra"
+    quantFocus: "algebra",
+    complexity: "Hard"
   },
   {
     label: "Arithmetic and percents",
     description: "Extra focus on ratios, unit conversions, probability, weighted averages, overlapping sets, and number properties.",
-    quantFocus: "arithmetic"
+    quantFocus: "arithmetic",
+    complexity: "Hard"
   },
   {
     label: "Data and statistics",
     description: "Extra focus on two-way tables, graphs, percent change, averages, comparisons, and statistical spread.",
-    quantFocus: "data"
+    quantFocus: "data",
+    complexity: "Hard"
   },
   {
     label: "Geometry mixed review",
     description: "Heavy geometry mix covering lines, angles, triangles, coordinate geometry, and 3D figures.",
-    quantFocus: "geometry-mixed"
+    quantFocus: "geometry-mixed",
+    complexity: "Hard"
   },
   {
     label: "Advanced mixed review",
     description: "Balanced practice with harder algebra, probability, statistics, graph interpretation, 3D geometry, rates, ratios, and unit conversions.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Hard"
   },
   {
     label: "Full review with geometry",
     description: "Full mixed test with additional geometry reminders across both Quant sections.",
-    quantFocus: "geometry-mixed"
+    quantFocus: "geometry-mixed",
+    complexity: "Hard"
   }
 ];
 
@@ -1389,28 +1399,72 @@ const OFFICIAL_STYLE_TEST_FOCUSES = [
   {
     label: "Official-style mixed practice A",
     description: "Balanced GRE-style practice with no single topic focus: verbal reasoning, quantitative comparison, problem solving, data interpretation, and writing.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   },
   {
     label: "Official-style mixed practice B",
     description: "A general GRE-style test built to feel like a full exam section set rather than a targeted drill.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   },
   {
     label: "Official-style mixed practice C",
     description: "Mixed practice across the standard GRE question formats, with quantitative topics distributed across arithmetic, algebra, geometry, and data.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   },
   {
     label: "Official-style mixed practice D",
     description: "Full mixed GRE-style practice emphasizing realistic section balance instead of any one content area.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   },
   {
     label: "Official-style mixed practice E",
     description: "General GRE-style practice with varied verbal passages, vocabulary questions, quantitative comparisons, numeric entry, and data interpretation.",
-    quantFocus: "mixed"
+    quantFocus: "mixed",
+    complexity: "Medium"
   }
+];
+
+const HARD_TEST_FOCUSES = [
+  {
+    label: "Hard chained-ratio and matrix review",
+    description: "Hard practice with three-variable tables, chained three- and four-part ratios, overlap constraints, and multi-step unit conversions.",
+    quantFocus: "hard",
+    complexity: "Hard"
+  },
+  {
+    label: "Hard algebra and recursive growth",
+    description: "Hard practice with recursive formulas, integer-bound optimization, quadratic transformations, function composition, and sequence rules.",
+    quantFocus: "hard",
+    complexity: "Hard"
+  },
+  {
+    label: "Hard geometry and constraints",
+    description: "Hard practice with triangle inequality ranges, coordinate-line equations, nested solids, and not-enough-information comparisons.",
+    quantFocus: "hard",
+    complexity: "Hard"
+  },
+  {
+    label: "Expert mixed quant synthesis",
+    description: "Dense GRE-style synthesis using chained ratios, three-variable data, recurrence, probability, unit conversion, and algebraic constraints.",
+    quantFocus: "hard",
+    complexity: "Expert"
+  },
+  {
+    label: "Expert data and quantitative comparison",
+    description: "Expert practice with multi-condition data interpretation, quantitative comparison edge cases, statistics, and overlapping classifications.",
+    quantFocus: "hard",
+    complexity: "Expert"
+  }
+];
+
+const ALL_TEST_FOCUSES = [
+  ...TEST_FOCUSES,
+  ...OFFICIAL_STYLE_TEST_FOCUSES,
+  ...HARD_TEST_FOCUSES
 ];
 
 const vocabularyWords = [
@@ -1817,7 +1871,7 @@ const vocabularyWords = [
 ];
 
 function buildTests() {
-  return Array.from({ length: 15 }, (_, index) => buildTest(index));
+  return Array.from({ length: ALL_TEST_FOCUSES.length }, (_, index) => buildTest(index));
 }
 
 function buildTest(testIndex) {
@@ -1828,6 +1882,7 @@ function buildTest(testIndex) {
       name: `Practice Test ${oneBased}`,
       focus: focus.label,
       quantFocus: focus.quantFocus,
+      complexity: focus.complexity || "Medium",
       description: focus.description,
       sections: [
       buildWritingSection(testIndex),
@@ -1840,8 +1895,7 @@ function buildTest(testIndex) {
 }
 
 function getTestFocus(testIndex) {
-  if (testIndex < TEST_FOCUSES.length) return TEST_FOCUSES[testIndex];
-  return OFFICIAL_STYLE_TEST_FOCUSES[(testIndex - TEST_FOCUSES.length) % OFFICIAL_STYLE_TEST_FOCUSES.length];
+  return ALL_TEST_FOCUSES[testIndex % ALL_TEST_FOCUSES.length];
 }
 
 function buildWritingSection(testIndex) {
@@ -1967,6 +2021,9 @@ function makeQuantQuestion(type, focus, seed, testIndex, sectionNumber, itemInde
   if (geometryTopic && shouldUseGeometryFocus(focusName, itemIndex, type)) {
     return makeGeometryQuestion(geometryTopic, type, seed, testIndex, sectionNumber, itemIndex);
   }
+  if (focusName === "hard") {
+    return makeUltraHardQuantQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  }
   if (focusName === "algebra" && type !== "di") {
     return makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex);
   }
@@ -1991,10 +2048,427 @@ function makeQuantQuestion(type, focus, seed, testIndex, sectionNumber, itemInde
 
 function makeHardMixedQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   if (type === "di") return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
-  const variant = (seed + testIndex + sectionNumber + itemIndex) % 3;
-  if (variant === 0) return makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex);
-  if (variant === 1) return makeAdvancedArithmeticQuestion(type, seed, testIndex, sectionNumber, itemIndex);
-  return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  const variant = (seed + testIndex + sectionNumber + itemIndex) % 5;
+  if (variant === 0) return makeUltraHardQuantQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  if (variant === 1) return makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  if (variant === 2) return makeAdvancedArithmeticQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  if (variant === 3) return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  return makeGeometryQuestion(["triangles", "3d", "lines"][itemIndex % 3], type, seed, testIndex, sectionNumber, itemIndex);
+}
+
+function makeUltraHardQuantQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  const variant = (seed + testIndex * 3 + sectionNumber + itemIndex) % 6;
+  if (type === "qc") return makeUltraHardQuantComparison(seed, variant);
+  if (type === "single") return makeUltraHardSingle(seed, variant);
+  if (type === "numeric") return makeUltraHardNumeric(seed, variant);
+  if (type === "multi") return makeUltraHardMultiple(seed, variant);
+  return makeUltraHardDataInterpretation(seed, variant);
+}
+
+function makeUltraHardQuantComparison(seed, variant) {
+  if (variant === 0) {
+    const total = 28 + (seed % 3) * 4;
+    const mangoMax = Math.floor((total - 1) / 5);
+    const bananas = 1 + 4 * mangoMax;
+    const pineapples = total - bananas - mangoMax;
+    return qcQuestion({
+      stem: `A fruit cart contains exactly ${total} fruits: bananas, mangoes, and pineapples. The number of bananas is 1 more than 4 times the number of mangoes. All counts are nonnegative integers.`,
+      quantityA: "The least possible number of pineapples",
+      quantityB: String(pineapples),
+      answer: "C",
+      hint: "To minimize pineapples, maximize bananas plus mangoes without exceeding the total.",
+      explanation: `Let m be mangoes. Then bananas + mangoes = 1 + 5m <= ${total}, so m <= ${total - 1}/5. The largest integer m is ${mangoMax}; bananas = ${bananas}, so pineapples = ${total} - ${bananas} - ${mangoMax} = ${pineapples}.`
+    });
+  }
+  if (variant === 1) {
+    return qcQuestion({
+      stem: "A triangle has side lengths 9, x, and y, where x and y are positive integers and x + y = 17.",
+      quantityA: "The greatest possible value of |x - y|",
+      quantityB: "8",
+      answer: "B",
+      hint: "Use the triangle inequality 9 < x + y and |x - y| < 9.",
+      explanation: "The triangle inequality requires |x - y| < 9. Since x and y are integers, the greatest possible value of |x - y| is 7, not 8."
+    });
+  }
+  if (variant === 2) {
+    return qcQuestion({
+      stem: "A culture doubles every 20 minutes. Culture A starts with 90 bacteria. Culture B starts with 700 bacteria.",
+      quantityA: "Culture A after 1 hour",
+      quantityB: "Culture B now",
+      answer: "A",
+      hint: "One hour contains three 20-minute intervals.",
+      explanation: "After 1 hour, Culture A is multiplied by 2^3 = 8, so it has 720 bacteria. This is greater than 700."
+    });
+  }
+  if (variant === 3) {
+    return qcQuestion({
+      stem: "Line L has slope -2/3 and passes through (5, 4).",
+      quantityA: "The y-value on L when x = 2",
+      quantityB: "6",
+      answer: "C",
+      hint: "Find b in y = mx + b, then substitute x = 2.",
+      explanation: "4 = (-2/3)(5) + b, so b = 22/3. At x = 2, y = -4/3 + 22/3 = 6."
+    });
+  }
+  if (variant === 4) {
+    return qcQuestion({
+      stem: "There are 60 employees. 80% are female and 40% work part time.",
+      quantityA: "The number of female employees who work part time",
+      quantityB: "20",
+      answer: "D",
+      hint: "Use overlap bounds rather than assuming independence.",
+      explanation: "There are 48 female employees and 24 part-time employees. The overlap can range from 12 to 24, so it may be less than, equal to, or greater than 20."
+    });
+  }
+  return qcQuestion({
+    stem: "x and y are positive integers, xy = 30, and x < y.",
+    quantityA: "x + y",
+    quantityB: "13",
+    answer: "D",
+    hint: "Factor pairs can produce different sums.",
+    explanation: "If (x, y) = (5, 6), then x + y = 11. If (x, y) = (2, 15), then x + y = 17. The relationship cannot be determined."
+  });
+}
+
+function makeUltraHardSingle(seed, variant) {
+  if (variant === 0) return makeChainedStudentRatioQuestion(seed);
+  if (variant === 1) return makeChainedRecipeRatioQuestion(seed);
+  if (variant === 2) {
+    const pointX = 5 + (seed % 4);
+    const pointY = 4 + (seed % 5);
+    const slopeNumerator = -2;
+    const slopeDenominator = 3;
+    const targetX = pointX - 3;
+    const bNumerator = pointY * slopeDenominator - slopeNumerator * pointX;
+    const targetY = (slopeNumerator * targetX + bNumerator) / slopeDenominator;
+    return singleQuant({
+      stem: `Line L has slope ${slopeNumerator}/${slopeDenominator} and passes through (${pointX}, ${pointY}). What is the y-value on L when x = ${targetX}?`,
+      choices: numericChoices(targetY, [pointY, bNumerator / slopeDenominator, targetY + 2, targetY - 2]),
+      answer: formatNumber(targetY),
+      hint: "Find the intercept in y = mx + b, then substitute the new x-value.",
+      explanation: `${pointY} = (${slopeNumerator}/${slopeDenominator})(${pointX}) + b, so b = ${formatNumber(bNumerator / slopeDenominator)}. At x = ${targetX}, y = ${formatNumber(targetY)}.`
+    });
+  }
+  if (variant === 3) {
+    const red = 10 + (seed % 4);
+    const blue = 8 + (seed % 5);
+    const yellow = 6 + (seed % 3);
+    const total = red + blue + yellow;
+    const nonBlue = total - blue;
+    return singleQuant({
+      stem: `A box contains ${red} red, ${blue} blue, and ${yellow} yellow tiles. What fraction of the tiles are not blue?`,
+      choices: rotateChoices([`${nonBlue}/${total}`, `${blue}/${total}`, `${red}/${total}`, `${yellow}/${total}`, `${nonBlue}/${blue}`], seed),
+      answer: `${nonBlue}/${total}`,
+      hint: "Non-blue means red or yellow.",
+      explanation: `There are ${total} tiles and ${blue} are blue, so ${total} - ${blue} = ${nonBlue} are not blue.`
+    });
+  }
+  if (variant === 4) {
+    const y = 4;
+    const product = y * (y + 4);
+    return singleQuant({
+      stem: `If y(y + 4) = ${product} and y is positive, what is y?`,
+      choices: numericChoices(y, [-8, y + 4, product / y, y - 1]),
+      answer: String(y),
+      hint: "Rewrite as y^2 + 4y - 32 = 0 and factor.",
+      explanation: `y^2 + 4y - ${product} = 0, or (y - ${y})(y + ${y + 4}) = 0. The positive solution is ${y}.`
+    });
+  }
+  const sideA = 6 + (seed % 4);
+  const sideB = 6 + ((seed + 2) % 4);
+  const hypotenuse = Math.sqrt(sideA ** 2 + sideB ** 2);
+  return singleQuant({
+    stem: `A right triangle has legs ${sideA} and ${sideB}. Which value is closest to the hypotenuse?`,
+    choices: numericChoices(hypotenuse, [sideA + sideB, Math.abs(sideA - sideB), sideA * sideB / 2, hypotenuse + 2]),
+    answer: formatNumber(hypotenuse),
+    hint: "Use c^2 = a^2 + b^2.",
+    explanation: `c = sqrt(${sideA}^2 + ${sideB}^2) = sqrt(${sideA ** 2 + sideB ** 2}) = ${formatNumber(hypotenuse)}.`
+  });
+}
+
+function makeUltraHardNumeric(seed, variant) {
+  if (variant === 0) {
+    const total = 28 + (seed % 4) * 5;
+    const mangoMax = Math.floor((total - 1) / 5);
+    const bananas = 1 + 4 * mangoMax;
+    const pineapples = total - bananas - mangoMax;
+    return numericQuestion({
+      stem: `A cart contains exactly ${total} fruits: bananas, mangoes, and pineapples. Bananas = 1 + 4(mangoes). If all counts are nonnegative integers, what is the least possible number of pineapples?`,
+      answer: pineapples,
+      hint: "Maximize bananas plus mangoes subject to the total.",
+      explanation: `1 + 4m + m <= ${total}, so m <= ${total - 1}/5. The greatest integer m is ${mangoMax}; bananas = ${bananas}; pineapples = ${total} - ${bananas} - ${mangoMax} = ${pineapples}.`
+    });
+  }
+  if (variant === 1) {
+    const start = 3 + (seed % 5);
+    const hours = 2 + (seed % 3);
+    const bacteria = start * 8 ** hours;
+    return numericQuestion({
+      stem: `A bacteria culture starts with ${start} bacteria and doubles every 20 minutes. How many bacteria are present after ${hours} hours?`,
+      answer: bacteria,
+      hint: "Each hour has three doubling periods, so each hour multiplies the culture by 8.",
+      explanation: `${hours} hours is ${hours * 3} doubling periods, so the culture is ${start} * 2^${hours * 3} = ${start} * 8^${hours} = ${bacteria}.`
+    });
+  }
+  if (variant === 2) {
+    const a = 6 + (seed % 5);
+    const b = 9 + (seed % 5);
+    const min = Math.abs(a - b) + 1;
+    return numericQuestion({
+      stem: `Two sides of a triangle are ${a} and ${b}. What is the least integer that could be the length of the third side?`,
+      answer: min,
+      hint: "The third side must be greater than the positive difference.",
+      explanation: `The third side x must satisfy |${a} - ${b}| < x < ${a + b}. The least integer greater than ${Math.abs(a - b)} is ${min}.`
+    });
+  }
+  if (variant === 3) {
+    const rate = 10 + (seed % 4);
+    const target = 3 + (seed % 3);
+    const minutes = target / rate;
+    return numericQuestion({
+      stem: `A machine completes ${rate} cycles per minute. How many minutes are required to complete ${target} cycles?`,
+      answer: minutes,
+      hint: "Time equals work divided by rate.",
+      explanation: `The time is ${target}/${rate} = ${formatNumber(minutes)} minutes.`
+    });
+  }
+  if (variant === 4) {
+    const firstArea = 150;
+    const firstPercent = 28;
+    const secondArea = 175;
+    const secondPercent = 20;
+    const ratio = firstArea * firstPercent / 100 / (secondArea * secondPercent / 100);
+    return numericQuestion({
+      stem: `Region A has area ${firstArea} and ${firstPercent}% of it is protected. Region B has area ${secondArea} and ${secondPercent}% of it is protected. What is the ratio of protected area in A to protected area in B?`,
+      answer: ratio,
+      hint: "Find each protected area first.",
+      explanation: `A protected area is ${firstArea} * 0.${firstPercent} = ${firstArea * firstPercent / 100}. B protected area is ${secondArea} * 0.${secondPercent} = ${secondArea * secondPercent / 100}. The ratio is ${formatNumber(ratio)}.`
+    });
+  }
+  const data = buildThreeVariableTable(seed);
+  return {
+    ...numericQuestion({
+      stem: "Use the three-variable table. How many in-person graduate students did not submit the project?",
+      answer: data.inPersonGraduateNo,
+      hint: "Read the row that combines format and level, then use the project-status column.",
+      explanation: `The in-person graduate row shows ${data.inPersonGraduateNo} students who did not submit the project.`
+    }),
+    dataTable: data.dataTable
+  };
+}
+
+function makeUltraHardMultiple(seed, variant) {
+  if (variant === 0) {
+    const sideA = 7 + (seed % 4);
+    const sideB = 13 + (seed % 5);
+    const lower = Math.abs(sideA - sideB);
+    const upper = sideA + sideB;
+    const choices = [lower, lower + 1, lower + 3, upper - 1, upper, upper + 2];
+    const answer = choices.filter(value => value > lower && value < upper).map(String);
+    return {
+      type: "multiple",
+      subtype: "Triangle Inequality, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `Two sides of a triangle are ${sideA} and ${sideB}. Which listed values could be the third side?`,
+      choices: choices.map(String),
+      answer,
+      hint: "The third side must be greater than the difference and less than the sum.",
+      explanation: `The third side x must satisfy ${lower} < x < ${upper}. The valid listed values are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 1) {
+    const first = 4 + (seed % 3);
+    const choices = [first * 2, first * 4, first * 8, first * 16, first * 24, first * 32];
+    const answer = choices.filter(value => Number.isInteger(Math.log2(value / first))).map(String);
+    return {
+      type: "multiple",
+      subtype: "Recursive Sequence, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `A sequence starts at ${first}, and each term is twice the previous term. Which listed values are terms of the sequence?`,
+      choices: choices.map(String),
+      answer,
+      hint: "Terms have the form first term times a power of 2.",
+      explanation: `The terms listed that equal ${first} times a power of 2 are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 2) {
+    const choices = [2, 3, 4, 5, 6, 7];
+    const answer = choices.filter(value => value * (value + 4) <= 70).map(String);
+    return {
+      type: "multiple",
+      subtype: "Inequalities, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: "Which listed positive integer values of y satisfy y(y + 4) <= 70?",
+      choices: choices.map(String),
+      answer,
+      hint: "Test the boundary where the product passes 70.",
+      explanation: `The listed values that make y(y + 4) at most 70 are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 3) {
+    const choices = [24, 36, 48, 60, 72, 84];
+    const answer = choices.filter(value => value % 12 === 0).map(String);
+    return {
+      type: "multiple",
+      subtype: "Chained Ratios, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: "A recipe uses flour:sugar:butter in the ratio 6:4:2. Which listed total numbers of cups could be used if each ingredient amount must be a whole number?",
+      choices: choices.map(String),
+      answer,
+      hint: "The total number of ratio parts is 12.",
+      explanation: `The total must be a multiple of 12. The listed possible totals are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 4) {
+    const choices = [1, 2, 3, 4, 5, 6];
+    const answer = choices.filter(value => 1 + 5 * value <= 28).map(String);
+    return {
+      type: "multiple",
+      subtype: "Integer Constraints, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: "A fruit cart has bananas = 1 + 4(mangoes), plus at least 0 pineapples, and exactly 28 fruits total. Which listed mango counts are possible?",
+      choices: choices.map(String),
+      answer,
+      hint: "Use 1 + 4m + m <= 28.",
+      explanation: `The condition is 1 + 5m <= 28, or m <= 27/5. The listed possible integer counts are ${answer.join(", ")}.`
+    };
+  }
+  const data = buildThreeVariableTable(seed);
+  const choices = data.dataTable.rows.map(row => row[0]);
+  const answer = data.dataTable.rows.filter(row => Number(row[1]) > Number(row[2])).map(row => row[0]);
+  return {
+    type: "multiple",
+    subtype: "Three-Variable Data, Select One or More",
+    directions: "Use the table to answer the question. Select all choices that apply.",
+    prompt: "Which row groups had more students submit the project than not submit it?",
+    dataTable: data.dataTable,
+    choices,
+    answer,
+    hint: "Compare the Submitted and Not submitted columns row by row.",
+    explanation: `The groups with more submitted than not submitted are ${answer.join(", ")}.`
+  };
+}
+
+function makeUltraHardDataInterpretation(seed, variant) {
+  if (variant === 0) {
+    const data = buildThreeVariableTable(seed);
+    return {
+      type: "numeric",
+      subtype: "Data Interpretation: Three-Variable Table",
+      directions: "Use the table to answer the question.",
+      prompt: "How many in-person graduate students did not submit the project?",
+      dataTable: data.dataTable,
+      answer: String(data.inPersonGraduateNo),
+      hint: "The row combines two variables: format and level.",
+      explanation: `The In-person graduate row and Not submitted column give ${data.inPersonGraduateNo}.`
+    };
+  }
+  if (variant === 1) return makeDataMultipleQuestion(seed + 11);
+  if (variant === 2) return makeDataSingleQuestion(seed + 17);
+  if (variant === 3) {
+    const values = [
+      { label: "Start", value: 3 + (seed % 4) },
+      { label: "20 min", value: (3 + (seed % 4)) * 2 },
+      { label: "40 min", value: (3 + (seed % 4)) * 4 },
+      { label: "60 min", value: (3 + (seed % 4)) * 8 }
+    ];
+    return {
+      type: "numeric",
+      subtype: "Data Interpretation: Recursive Growth Graph",
+      directions: "Use the graph to answer the question.",
+      prompt: "According to the growth pattern, how many bacteria are present after 60 minutes?",
+      dataGraph: {
+        type: "line",
+        caption: "Bacteria count by time",
+        yLabel: "Bacteria",
+        points: values
+      },
+      answer: String(values[3].value),
+      hint: "Each 20-minute step doubles the previous value.",
+      explanation: `After 60 minutes there have been 3 doublings, so the count is ${values[0].value} * 8 = ${values[3].value}.`
+    };
+  }
+  if (variant === 4) return makeChainedRatioDataQuestion(seed);
+  return makeDataQuantComparison(seed + 19);
+}
+
+function makeChainedStudentRatioQuestion(seed) {
+  const sophomores = 120 + (seed % 3) * 24;
+  const seniors = sophomores * 6 / 8;
+  const juniors = seniors * 2 / 3;
+  const freshmen = juniors * 50 / 30;
+  const total = freshmen + juniors + seniors + sophomores;
+  const percent = freshmen / total * 100;
+  return singleQuant({
+    stem: `There are 50 freshmen for every 30 juniors, 3 seniors for every 2 juniors, and 8 sophomores for every 6 seniors. If there are ${sophomores} sophomores, freshmen are what percent of these students?`,
+    choices: numericChoices(percent, [freshmen, seniors, juniors, percent + 10]),
+    answer: formatNumber(percent),
+    hint: "Work backward through the chained ratios from sophomores to seniors to juniors to freshmen.",
+    explanation: `Seniors = ${sophomores} * 6/8 = ${seniors}. Juniors = ${seniors} * 2/3 = ${juniors}. Freshmen = ${juniors} * 50/30 = ${freshmen}. The percent is ${freshmen}/${total} * 100 = ${formatNumber(percent)}%.`
+  });
+}
+
+function makeChainedRecipeRatioQuestion(seed) {
+  const water = 2.5 + (seed % 3) * 0.5;
+  const sugar = water * 9 / 5;
+  return singleQuant({
+    stem: `In a recipe, eggs:water = 2:5, water:butter = 5:3, and butter:sugar = 1:3. If the mixture contains ${formatNumber(water)} cups of water, how many cups of sugar are needed?`,
+    choices: numericChoices(sugar, [water * 3 / 5, water * 5 / 9, sugar + 1, water + sugar]),
+    answer: formatNumber(sugar),
+    hint: "Align the shared units to combine the ratios into eggs:water:butter:sugar.",
+    explanation: `The chained ratio is eggs:water:butter:sugar = 2:5:3:9. Since water is ${formatNumber(water)}, sugar is ${formatNumber(water)} * 9/5 = ${formatNumber(sugar)}.`
+  });
+}
+
+function makeChainedRatioDataQuestion(seed) {
+  const technicians = 48 + (seed % 3) * 12;
+  const engineers = technicians * 3 / 4;
+  const managers = engineers / 6;
+  const total = managers + engineers + technicians;
+  return {
+    type: "numeric",
+    subtype: "Data Interpretation: Chained Ratios",
+    directions: "Use the ratio chain to answer the question.",
+    prompt: "Managers:Engineers = 1:6 and Engineers:Technicians = 3:4. If the table gives the number of technicians, what is the total number of these employees?",
+    dataTable: {
+      caption: "Staffing ratio chain",
+      headers: ["Role", "Count"],
+      rows: [
+        ["Managers", ""],
+        ["Engineers", ""],
+        ["Technicians", technicians]
+      ]
+    },
+    answer: formatNumber(total),
+    hint: "Find engineers from technicians, then managers from engineers.",
+    explanation: `Engineers = ${technicians} * 3/4 = ${engineers}. Managers = ${engineers}/6 = ${formatNumber(managers)}. Total = ${formatNumber(total)}.`
+  };
+}
+
+function buildThreeVariableTable(seed) {
+  const offset = seed % 4;
+  const onlineUndergradSubmitted = 24 + offset;
+  const onlineUndergradNo = 36 + offset;
+  const onlineGraduateSubmitted = 18 + offset;
+  const onlineGraduateNo = 22 + 2 * offset;
+  const inPersonUndergradSubmitted = 35 + 2 * offset;
+  const inPersonUndergradNo = 25 + offset;
+  const inPersonGraduateSubmitted = 28 + offset;
+  const inPersonGraduateNo = 32 + 2 * offset;
+  const rows = [
+    ["Online undergrad", onlineUndergradSubmitted, onlineUndergradNo],
+    ["Online graduate", onlineGraduateSubmitted, onlineGraduateNo],
+    ["In-person undergrad", inPersonUndergradSubmitted, inPersonUndergradNo],
+    ["In-person graduate", inPersonGraduateSubmitted, inPersonGraduateNo]
+  ].map(row => [...row, row[1] + row[2]]);
+  return {
+    inPersonGraduateNo,
+    dataTable: {
+      caption: "Students by format, level, and project status",
+      headers: ["Format and level", "Submitted", "Not submitted", "Total"],
+      rows
+    }
+  };
 }
 
 function makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
@@ -4539,6 +5013,7 @@ function renderTestList() {
       </div>
       <div class="test-focus-cell">
         <strong>${test.focus}</strong>
+        <span class="complexity-pill complexity-${slugify(test.complexity)}">${escapeHtml(test.complexity)} complexity</span>
         <span>${formatMinutes(totalMinutes)}</span>
       </div>
       <div class="test-start-controls">
@@ -4580,6 +5055,7 @@ function testMatchesFilters(test) {
 }
 
 function getFocusCategory(test) {
+  if (test.quantFocus === "hard") return "hard";
   if (test.quantFocus.startsWith("geometry")) return "geometry";
   if (test.quantFocus === "algebra") return "algebra";
   if (test.quantFocus === "arithmetic") return "arithmetic";
@@ -4593,8 +5069,13 @@ function getFocusIcon(category) {
     geometry: "G",
     algebra: "x",
     arithmetic: "%",
-    data: "#"
+    data: "#",
+    hard: "H"
   }[category] || "T";
+}
+
+function slugify(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 function formatMinutes(totalMinutes) {

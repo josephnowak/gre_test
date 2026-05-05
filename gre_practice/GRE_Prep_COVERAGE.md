@@ -54,6 +54,7 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
   - Case testing
   - Cannot-be-determined cases
   - Ratio, overlap, and statistics cases where different valid scenarios change the relationship
+  - Integer-bound optimization and minimum/maximum feasible-value comparisons
 
 - Arithmetic and Number Properties
   - Divisibility
@@ -65,6 +66,7 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
   - Probability
   - Averages and weighted averages
   - Overlapping sets and double matrices
+  - Chained three- and four-part ratios
 
 - Algebra
   - Linear equations
@@ -73,11 +75,13 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
   - Inequalities
   - Expressions
   - Sequences
+  - Recursive growth formulas
   - Functions and relationships
 
 - Geometry
   - Lines and angles
   - Triangles
+  - Triangle inequality ranges
   - Coordinate distance
   - Rectangles
   - Circles
@@ -86,6 +90,7 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
 - Data Interpretation
   - Tables
   - Two-way matrices
+  - Three-variable classification tables
   - Bar, line, and coordinate graphs
   - Totals
   - Differences

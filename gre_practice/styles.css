@@ -491,6 +491,30 @@ textarea {
   gap: 4px;
 }
 
+.complexity-pill {
+  width: max-content !important;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid rgba(122, 167, 255, 0.36);
+  border-radius: 999px;
+  background: rgba(122, 167, 255, 0.12);
+  color: #c9d8ff !important;
+  font-size: 0.75rem !important;
+  font-weight: 780;
+}
+
+.complexity-hard {
+  border-color: rgba(240, 191, 95, 0.42);
+  background: rgba(240, 191, 95, 0.13);
+  color: #f6d28b !important;
+}
+
+.complexity-expert {
+  border-color: rgba(255, 107, 98, 0.46);
+  background: rgba(255, 107, 98, 0.14);
+  color: #ffaaa4 !important;
+}
+
 .test-start-controls {
   min-width: 0;
   display: grid;
