@@ -1335,7 +1335,7 @@ rcPassages.push(...pdfInferredQuestionBankAdditions.rcPassages);
 const TEST_FOCUSES = [
   {
     label: "Mixed Quant foundations",
-    description: "Balanced practice across arithmetic, algebra, geometry, and data interpretation.",
+    description: "Balanced practice across quantitative comparison, algebra, geometry, probability, statistics, and data interpretation.",
     quantFocus: "mixed"
   },
   {
@@ -1345,27 +1345,27 @@ const TEST_FOCUSES = [
   },
   {
     label: "Geometry: triangles",
-    description: "Extra focus on triangle angle sums, exterior angles, isosceles triangles, right triangles, and triangle inequality.",
+    description: "Extra focus on triangle inequality, similar triangles, coordinate-area graphs, right-triangle altitude, and equilateral area.",
     quantFocus: "geometry-triangles"
   },
   {
     label: "Geometry: 3D shapes",
-    description: "Extra focus on cubes, rectangular solids, cylinders, surface area, volume, and space diagonals.",
+    description: "Extra focus on nested solids, inscribed spheres, cylindrical cavities, surface area, volume, and space diagonals.",
     quantFocus: "geometry-3d"
   },
   {
     label: "Algebra and equations",
-    description: "Extra focus on variables, equations, expressions, ratios, and algebraic comparison.",
+    description: "Extra focus on quadratic formulas, completing the square, polynomial factors, inequalities, functions, and sequences.",
     quantFocus: "algebra"
   },
   {
     label: "Arithmetic and percents",
-    description: "Extra focus on divisibility, fractions, ratios, percents, averages, and number properties.",
+    description: "Extra focus on ratios, unit conversions, probability, weighted averages, overlapping sets, and number properties.",
     quantFocus: "arithmetic"
   },
   {
     label: "Data and statistics",
-    description: "Extra focus on tables, totals, averages, comparisons, and interpreting quantitative information.",
+    description: "Extra focus on two-way tables, graphs, percent change, averages, comparisons, and statistical spread.",
     quantFocus: "data"
   },
   {
@@ -1375,7 +1375,7 @@ const TEST_FOCUSES = [
   },
   {
     label: "Advanced mixed review",
-    description: "Balanced practice with harder algebra, geometry, rates, percents, and data questions.",
+    description: "Balanced practice with harder algebra, probability, statistics, graph interpretation, 3D geometry, rates, ratios, and unit conversions.",
     quantFocus: "mixed"
   },
   {
@@ -1942,8 +1942,8 @@ function makeReadingComprehension(testIndex, sectionNumber, itemIndex) {
 function buildQuantSection(testIndex, sectionNumber, count, focus) {
   const questions = [];
   const plan = sectionNumber === 1
-    ? ["qc", "qc", "single", "numeric", "single", "multi", "qc", "single", "numeric", "multi", "qc", "di"]
-    : ["qc", "single", "numeric", "multi", "qc", "single", "di", "qc", "single", "numeric", "multi", "qc", "single", "di", "single"];
+    ? ["qc", "di", "single", "qc", "numeric", "multi", "qc", "single", "di", "numeric", "qc", "multi"]
+    : ["qc", "di", "single", "numeric", "qc", "multi", "di", "single", "qc", "numeric", "multi", "qc", "di", "single", "numeric"];
 
   for (let i = 0; i < count; i += 1) {
     const type = plan[i % plan.length];
@@ -1967,7 +1967,18 @@ function makeQuantQuestion(type, focus, seed, testIndex, sectionNumber, itemInde
   if (geometryTopic && shouldUseGeometryFocus(focusName, itemIndex, type)) {
     return makeGeometryQuestion(geometryTopic, type, seed, testIndex, sectionNumber, itemIndex);
   }
-  if (focusName === "data" && type === "di") return makeDataInterpretation(seed, testIndex, sectionNumber, itemIndex);
+  if (focusName === "algebra" && type !== "di") {
+    return makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  }
+  if (focusName === "arithmetic" && type !== "di") {
+    return makeAdvancedArithmeticQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  }
+  if (focusName === "data" && (type === "di" || itemIndex % 3 === 1)) {
+    return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  }
+  if (focusName === "mixed" && (type === "di" || itemIndex % 4 === 1)) {
+    return makeHardMixedQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  }
   const maker = {
     qc: makeQuantComparison,
     single: makeQuantSingle,
@@ -1976,6 +1987,700 @@ function makeQuantQuestion(type, focus, seed, testIndex, sectionNumber, itemInde
     di: makeDataInterpretation
   }[type];
   return maker(seed, testIndex, sectionNumber, itemIndex);
+}
+
+function makeHardMixedQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  if (type === "di") return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  const variant = (seed + testIndex + sectionNumber + itemIndex) % 3;
+  if (variant === 0) return makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  if (variant === 1) return makeAdvancedArithmeticQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+  return makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex);
+}
+
+function makeAdvancedAlgebraQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  const variant = (seed + testIndex + itemIndex) % 5;
+
+  if (type === "qc") {
+    if (variant === 0) {
+      const rootA = 2 + (seed % 3);
+      const rootB = rootA + 1 + (seed % 2);
+      const rootSum = rootA + rootB;
+      const product = rootA * rootB;
+      return qcQuestion({
+        stem: `x^2 - ${rootSum}x + ${product} = 0.`,
+        quantityA: "x",
+        quantityB: formatNumber(rootSum / 2),
+        answer: "D",
+        hint: "A quadratic equation can have two valid values for x.",
+        explanation: `The equation factors as (x - ${rootA})(x - ${rootB}) = 0, so x can be ${rootA} or ${rootB}. One root is below ${formatNumber(rootSum / 2)} and one is above it, so the relationship cannot be determined.`
+      });
+    }
+    if (variant === 1) {
+      const h = 2 + (seed % 4);
+      const k = 3 + (seed % 5);
+      return qcQuestion({
+        stem: "x is a real number.",
+        quantityA: `x^2 - ${2 * h}x + ${h * h + k}`,
+        quantityB: `${k - 1}`,
+        answer: "A",
+        hint: "Complete the square to find the least possible value of Quantity A.",
+        explanation: `Quantity A is (x - ${h})^2 + ${k}. Since (x - ${h})^2 is nonnegative, Quantity A is at least ${k}, which is greater than ${k - 1}.`
+      });
+    }
+    if (variant === 2) {
+      return qcQuestion({
+        stem: "x and y are positive numbers, and x + y = 10.",
+        quantityA: "xy",
+        quantityB: "24",
+        answer: "D",
+        hint: "Try balanced and unbalanced positive values with the same sum.",
+        explanation: "If x = 5 and y = 5, then xy = 25. If x = 1 and y = 9, then xy = 9. Quantity A can be greater or less than Quantity B."
+      });
+    }
+    if (variant === 3) {
+      return qcQuestion({
+        stem: "a + b = 7 and ab = 10.",
+        quantityA: "a^2 + b^2",
+        quantityB: "29",
+        answer: "C",
+        hint: "Use (a + b)^2 = a^2 + 2ab + b^2.",
+        explanation: "a^2 + b^2 = (a + b)^2 - 2ab = 7^2 - 2(10) = 29, so the two quantities are equal."
+      });
+    }
+    return qcQuestion({
+      stem: "0 < t < 1.",
+      quantityA: "t^2 - t",
+      quantityB: "0",
+      answer: "B",
+      hint: "For a fraction between 0 and 1, squaring makes it smaller.",
+      explanation: "Since 0 < t < 1, t^2 < t, so t^2 - t is negative. Quantity B is 0, so Quantity B is greater."
+    });
+  }
+
+  if (type === "single") {
+    if (variant === 0) {
+      const item = [
+        { a: 2, b: -11, c: 5, larger: "5", other: "1/2" },
+        { a: 3, b: -13, c: 4, larger: "4", other: "1/3" },
+        { a: 2, b: -7, c: 3, larger: "3", other: "1/2" },
+        { a: 4, b: -20, c: 16, larger: "4", other: "1" }
+      ][seed % 4];
+      return singleQuant({
+        stem: `What is the larger solution of ${item.a}x^2 ${formatSigned(item.b)}x ${formatSigned(item.c)} = 0?`,
+        choices: rotateChoices([item.larger, item.other, String(Number(item.larger) + 1), "0", String(Number(item.larger) - 1)], seed),
+        answer: item.larger,
+        hint: "Use the quadratic formula or factor after checking for a common structure.",
+        explanation: `Using the quadratic formula on ${item.a}x^2 ${formatSigned(item.b)}x ${formatSigned(item.c)} = 0 gives roots ${item.other} and ${item.larger}.`
+      });
+    }
+    if (variant === 1) {
+      const h = 4 + (seed % 4);
+      const constant = 2 + (seed % 6);
+      const k = h * h - constant;
+      return singleQuant({
+        stem: `x^2 - ${2 * h}x + ${constant} = (x - ${h})^2 - k. What is k?`,
+        choices: numericChoices(k, [h, h * h, constant, k + 2]),
+        answer: String(k),
+        hint: "Add and subtract the square of half the x coefficient.",
+        explanation: `(x - ${h})^2 = x^2 - ${2 * h}x + ${h * h}. Therefore x^2 - ${2 * h}x + ${constant} = (x - ${h})^2 - ${k}.`
+      });
+    }
+    if (variant === 2) {
+      const r = 2 + (seed % 4);
+      const p = 3 + (seed % 3);
+      const a = 2 + (seed % 5);
+      const k = -(r ** 3) + p * r * r - a * r;
+      return singleQuant({
+        stem: `If x - ${r} is a factor of P(x) = x^3 - ${p}x^2 + ${a}x + k, what is k?`,
+        choices: numericChoices(k, [k + r, k - r, a * r, p * r]),
+        answer: String(k),
+        hint: "Use the factor theorem: if x - r is a factor, then P(r) = 0.",
+        explanation: `P(${r}) = ${r ** 3} - ${p}(${r * r}) + ${a}(${r}) + k = 0, so k = ${k}.`
+      });
+    }
+    if (variant === 3) {
+      const d = 2 + (seed % 4);
+      const c = 1 + (seed % 5);
+      const a8 = 8 * 8 + d * 8 + c;
+      const a5 = 5 * 5 + d * 5 + c;
+      return singleQuant({
+        stem: `The nth term of a sequence is a_n = n^2 + ${d}n + ${c}. What is a_8 - a_5?`,
+        choices: numericChoices(a8 - a5, [a8, a5, 3 * d, 39]),
+        answer: String(a8 - a5),
+        hint: "Find both terms from the formula before subtracting.",
+        explanation: `a_8 = ${a8} and a_5 = ${a5}, so a_8 - a_5 = ${a8 - a5}.`
+      });
+    }
+    const m = 2 + (seed % 3);
+    const n = 3 + (seed % 4);
+    const value = m * (n + 1) ** 2 - n;
+    return singleQuant({
+      stem: `If f(x) = ${m}x^2 - ${n} and g(x) = x + 1, what is f(g(${n}))?`,
+      choices: numericChoices(value, [m * n * n - n, m * (n + 1) - n, value + n, value - m]),
+      answer: String(value),
+      hint: "Evaluate the inside function first, then substitute the result into f.",
+      explanation: `g(${n}) = ${n + 1}, so f(g(${n})) = ${m}(${n + 1})^2 - ${n} = ${value}.`
+    });
+  }
+
+  if (type === "numeric") {
+    if (variant === 0) {
+      const a = 2 + (seed % 3);
+      const r1 = 1 + (seed % 4);
+      const r2 = r1 + 2;
+      const b = -a * (r1 + r2);
+      const c = a * r1 * r2;
+      const rootSum = -b / a;
+      return numericQuestion({
+        stem: `The two roots of ${a}x^2 ${formatSigned(b)}x ${formatSigned(c)} = 0 have what sum?`,
+        answer: rootSum,
+        hint: "For ax^2 + bx + c = 0, the sum of the roots is -b/a.",
+        explanation: `The sum is -(${b})/${a} = ${formatNumber(rootSum)}.`
+      });
+    }
+    if (variant === 1) {
+      const h = 5 + (seed % 4);
+      const k = 1 + (seed % 6);
+      return numericQuestion({
+        stem: `What is the minimum value of x^2 - ${2 * h}x + ${h * h + k}?`,
+        answer: k,
+        hint: "Complete the square.",
+        explanation: `x^2 - ${2 * h}x + ${h * h + k} = (x - ${h})^2 + ${k}, whose minimum value is ${k}.`
+      });
+    }
+    if (variant === 2) {
+      const first = 2 + (seed % 5);
+      const difference = 3 + (seed % 4);
+      const term = first + 9 * difference;
+      return numericQuestion({
+        stem: `An arithmetic sequence has a_1 = ${first} and a_10 = ${term}. What is the common difference?`,
+        answer: difference,
+        hint: "The 10th term is nine common differences after the first term.",
+        explanation: `${term} = ${first} + 9d, so d = ${difference}.`
+      });
+    }
+    if (variant === 3) {
+      const a = 2 + (seed % 4);
+      const r1 = 2 + (seed % 3);
+      const r2 = r1 + 3;
+      const b = -a * (r1 + r2);
+      const c = a * r1 * r2;
+      return numericQuestion({
+        stem: `For ${a}x^2 ${formatSigned(b)}x ${formatSigned(c)} = 0, what is the product of the two roots?`,
+        answer: c / a,
+        hint: "For ax^2 + bx + c = 0, the product of the roots is c/a.",
+        explanation: `The product is ${c}/${a} = ${formatNumber(c / a)}.`
+      });
+    }
+    const r = 3 + (seed % 4);
+    const coefficient = 2 + (seed % 5);
+    const constant = 5 + (seed % 6);
+    const remainder = r * r + coefficient * r + constant;
+    return numericQuestion({
+      stem: `What is the remainder when x^2 + ${coefficient}x + ${constant} is divided by x - ${r}?`,
+      answer: remainder,
+      hint: "By the remainder theorem, divide by x - r by evaluating the polynomial at r.",
+      explanation: `The remainder is P(${r}) = ${r}^2 + ${coefficient}(${r}) + ${constant} = ${remainder}.`
+    });
+  }
+
+  if (type === "multi") {
+    if (variant === 0) {
+      const low = 1 + (seed % 4);
+      const high = low + 5;
+      const choices = [low - 2, low, low + 1, low + 3, high, high + 2];
+      const answer = choices.filter(value => value > low && value < high).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `Which listed values of x satisfy (x - ${low})(x - ${high}) < 0?`,
+        choices: choices.map(String),
+        answer,
+        hint: "A product of two factors is negative between the two roots.",
+        explanation: `The expression is negative for ${low} < x < ${high}. The listed values that work are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 1) {
+      const h = 3 + (seed % 4);
+      const limit = 9;
+      const choices = [h - 4, h - 3, h - 1, h, h + 2, h + 4];
+      const answer = choices.filter(value => (value - h) ** 2 <= limit).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `Which listed values of x satisfy (x - ${h})^2 <= ${limit}?`,
+        choices: choices.map(String),
+        answer,
+        hint: "Take the square-root bound: the distance from h is at most 3.",
+        explanation: `The inequality is equivalent to ${h - 3} <= x <= ${h + 3}. The listed values that work are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 2) {
+      const first = 4 + (seed % 4);
+      const difference = 3 + (seed % 3);
+      const choices = [first, first + difference, first + 2 * difference + 1, first + 3 * difference, first + 5 * difference, first + 6 * difference + 2];
+      const answer = choices.filter(value => (value - first) % difference === 0 && value >= first).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `The sequence starts with ${first} and has common difference ${difference}. Which listed numbers are terms of the sequence?`,
+        choices: choices.map(String),
+        answer,
+        hint: "Subtract the first term and check divisibility by the common difference.",
+        explanation: `A listed number is a term when it has the form ${first} + ${difference}k for a nonnegative integer k. The terms listed are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 3) {
+      const rootA = 2 + (seed % 4);
+      const rootB = rootA + 2;
+      const choices = [rootA - 1, rootA, rootA + 1, rootB, rootB + 1, -rootA];
+      const answer = choices.filter(value => (value - rootA) * (value - rootB) === 0).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `Which listed values are solutions of x^2 - ${rootA + rootB}x + ${rootA * rootB} = 0?`,
+        choices: choices.map(String),
+        answer,
+        hint: "Factor the quadratic.",
+        explanation: `The equation factors as (x - ${rootA})(x - ${rootB}) = 0, so the listed solutions are ${answer.join(", ")}.`
+      };
+    }
+    const center = 6 + (seed % 5);
+    const radius = 4;
+    const choices = [center - 6, center - 4, center - 1, center + 2, center + 4, center + 5];
+    const answer = choices.filter(value => Math.abs(value - center) < radius).map(String);
+    return {
+      type: "multiple",
+      subtype: "Multiple Choice, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `Which listed values of x satisfy |x - ${center}| < ${radius}?`,
+      choices: choices.map(String),
+      answer,
+      hint: "Absolute value gives distance from the center.",
+      explanation: `The solution interval is ${center - radius} < x < ${center + radius}. The listed values that work are ${answer.join(", ")}.`
+    };
+  }
+
+  return makeDataInterpretation(seed, testIndex, sectionNumber, itemIndex);
+}
+
+function makeAdvancedArithmeticQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  const variant = (seed + sectionNumber + itemIndex) % 5;
+
+  if (type === "qc") {
+    if (variant === 0) {
+      return qcQuestion({
+        stem: "In a club, the ratio of members who commute by train to members who commute by bus is 3:4. The total number of such members is unknown.",
+        quantityA: "The number who commute by train",
+        quantityB: "18",
+        answer: "D",
+        hint: "A fixed ratio does not fix the scale.",
+        explanation: "The train count could be 3, 6, 9, 12, 15, 18, 21, and so on, depending on the total scale. It can be less than, equal to, or greater than 18."
+      });
+    }
+    if (variant === 1) {
+      return qcQuestion({
+        stem: "1 mile = 5,280 feet. A vehicle travels 2,640 feet in 30 seconds at a constant speed.",
+        quantityA: "The speed in miles per hour",
+        quantityB: "60",
+        answer: "C",
+        hint: "Convert feet per second to miles per hour.",
+        explanation: "2,640 feet in 30 seconds is 88 feet per second. Since 88 feet per second equals 60 miles per hour, the two quantities are equal."
+      });
+    }
+    if (variant === 2) {
+      return qcQuestion({
+        stem: "A box contains r red tokens and b blue tokens, where r and b are positive integers.",
+        quantityA: "The probability of selecting a red token",
+        quantityB: "1/2",
+        answer: "D",
+        hint: "No relationship between r and b is given.",
+        explanation: "If r > b, the probability is greater than 1/2. If r < b, it is less than 1/2. The relationship cannot be determined."
+      });
+    }
+    if (variant === 3) {
+      return qcQuestion({
+        stem: "A data set of five numbers has mean 10 and median 10.",
+        quantityA: "The greatest number in the data set",
+        quantityB: "20",
+        answer: "D",
+        hint: "Mean and median do not determine the largest value.",
+        explanation: "The set {10, 10, 10, 10, 10} has greatest value 10, while {0, 0, 10, 10, 30} has mean 10, median 10, and greatest value 30."
+      });
+    }
+    const rate = 3 + (seed % 4);
+    return qcQuestion({
+      stem: `A pump moves ${rate} gallons every 40 seconds.`,
+      quantityA: "The number of gallons moved in 6 minutes",
+      quantityB: `${rate * 9}`,
+      answer: "C",
+      hint: "Six minutes is 360 seconds.",
+      explanation: `Six minutes is 360 seconds, which is 9 intervals of 40 seconds. The pump moves ${rate * 9} gallons, so the quantities are equal.`
+    });
+  }
+
+  if (type === "single") {
+    if (variant === 0) {
+      const cm = 18 + (seed % 4) * 3;
+      const kilometers = cm * 5 / 3;
+      const minutes = kilometers / 48 * 60;
+      return singleQuant({
+        stem: `On a map, 3 centimeters represents 5 kilometers. A route measures ${cm} centimeters on the map. At 48 kilometers per hour, how many minutes would it take to travel the route?`,
+        choices: numericChoices(minutes, [kilometers, minutes / 2, minutes + 15, cm * 5]),
+        answer: formatNumber(minutes),
+        hint: "Convert map distance to actual distance, then use time = distance/rate.",
+        explanation: `The route is ${cm} * 5/3 = ${formatNumber(kilometers)} km. Time is ${formatNumber(kilometers)}/48 hours, or ${formatNumber(minutes)} minutes.`
+      });
+    }
+    if (variant === 1) {
+      const total = 240 + (seed % 4) * 60;
+      const ratioA = 2 + (seed % 3);
+      const ratioB = ratioA + 3;
+      const part = total / (ratioA + ratioB);
+      const difference = (ratioB - ratioA) * part;
+      return singleQuant({
+        stem: `A total of ${total} grams of alloy is made from copper and zinc in the ratio ${ratioA}:${ratioB}. How many more grams of zinc than copper are used?`,
+        choices: numericChoices(difference, [part, ratioB * part, ratioA * part, total - difference]),
+        answer: formatNumber(difference),
+        hint: "Find the value of one ratio part, then compare the two shares.",
+        explanation: `There are ${ratioA + ratioB} parts, so each part is ${formatNumber(part)} grams. The difference is ${ratioB - ratioA} parts, or ${formatNumber(difference)} grams.`
+      });
+    }
+    if (variant === 2) {
+      const red = 4 + (seed % 4);
+      const blue = 5 + (seed % 5);
+      const total = red + blue;
+      const probability = red / total * (red - 1) / (total - 1);
+      return singleQuant({
+        stem: `A bag contains ${red} red chips and ${blue} blue chips. Two chips are selected without replacement. What is the probability that both are red?`,
+        choices: numericChoices(probability, [red / total, blue / total, red / total * blue / (total - 1), (red - 1) / (total - 1)]),
+        answer: formatNumber(probability),
+        hint: "Multiply the probability of red first by the conditional probability of red second.",
+        explanation: `The probability is (${red}/${total})((${red - 1})/${total - 1}) = ${formatNumber(probability)}.`
+      });
+    }
+    if (variant === 3) {
+      const feetPerSecond = 44 + (seed % 3) * 22;
+      const mph = feetPerSecond * 3600 / 5280;
+      return singleQuant({
+        stem: `A cyclist travels at ${feetPerSecond} feet per second. What is the speed in miles per hour?`,
+        choices: numericChoices(mph, [feetPerSecond / 2, feetPerSecond, mph + 10, mph * 2]),
+        answer: formatNumber(mph),
+        hint: "Multiply by 3,600 seconds per hour and divide by 5,280 feet per mile.",
+        explanation: `${feetPerSecond} ft/s = ${feetPerSecond} * 3600 / 5280 = ${formatNumber(mph)} miles per hour.`
+      });
+    }
+    const matrix = buildSurveyMatrix(seed);
+    return {
+      ...singleQuant({
+        stem: "In the two-way table shown, how many in-person students are undergraduates?",
+        choices: numericChoices(matrix.inPersonUndergraduate, [matrix.onlineUndergraduate, matrix.inPersonGraduate, matrix.undergraduate, matrix.online]),
+        answer: String(matrix.inPersonUndergraduate),
+        hint: "Use the row and column totals to fill the missing cells.",
+        explanation: `Online undergraduates = ${matrix.online} - ${matrix.onlineGraduate} = ${matrix.onlineUndergraduate}. In-person undergraduates = ${matrix.undergraduate} - ${matrix.onlineUndergraduate} = ${matrix.inPersonUndergraduate}.`
+      }),
+      dataTable: matrix.dataTable
+    };
+  }
+
+  if (type === "numeric") {
+    if (variant === 0) {
+      const matrix = buildSurveyMatrix(seed);
+      return {
+        ...numericQuestion({
+          stem: "In the two-way table shown, how many in-person students are undergraduates?",
+          answer: matrix.inPersonUndergraduate,
+          hint: "Use the row and column totals to fill the missing cells.",
+          explanation: `Online undergraduates = ${matrix.online} - ${matrix.onlineGraduate} = ${matrix.onlineUndergraduate}. In-person undergraduates = ${matrix.undergraduate} - ${matrix.onlineUndergraduate} = ${matrix.inPersonUndergraduate}.`
+        }),
+        dataTable: matrix.dataTable
+      };
+    }
+    if (variant === 1) {
+      const lengthFeet = 18 + (seed % 5) * 3;
+      const widthFeet = 12 + (seed % 4) * 3;
+      const squareYards = lengthFeet * widthFeet / 9;
+      return numericQuestion({
+        stem: `A rectangular floor is ${lengthFeet} feet by ${widthFeet} feet. How many square yards is its area?`,
+        answer: squareYards,
+        hint: "One square yard is 9 square feet.",
+        explanation: `The area is ${lengthFeet * widthFeet} square feet. Dividing by 9 gives ${formatNumber(squareYards)} square yards.`
+      });
+    }
+    if (variant === 2) {
+      const smallCount = 12 + (seed % 4);
+      const largeCount = 8 + (seed % 5);
+      const smallMean = 64 + (seed % 5) * 2;
+      const largeMean = smallMean + 18;
+      const combined = (smallCount * smallMean + largeCount * largeMean) / (smallCount + largeCount);
+      return numericQuestion({
+        stem: `${smallCount} measurements have mean ${smallMean}, and ${largeCount} additional measurements have mean ${largeMean}. What is the combined mean?`,
+        answer: combined,
+        hint: "Use weighted total divided by total count.",
+        explanation: `The combined mean is (${smallCount} * ${smallMean} + ${largeCount} * ${largeMean}) / ${smallCount + largeCount} = ${formatNumber(combined)}.`
+      });
+    }
+    if (variant === 3) {
+      const first = 3 + (seed % 4);
+      const second = first + 4;
+      const third = second * 2 - first;
+      const fourth = third * 2 - second;
+      return numericQuestion({
+        stem: `In a sequence, each term after the second is twice the previous term minus the term before that. If the first two terms are ${first} and ${second}, what is the fourth term?`,
+        answer: fourth,
+        hint: "Find the third term first, then apply the same rule again.",
+        explanation: `The third term is 2(${second}) - ${first} = ${third}. The fourth term is 2(${third}) - ${second} = ${fourth}.`
+      });
+    }
+    const cylinderRadius = 3 + (seed % 3);
+    const height = 2 * cylinderRadius + 4;
+    const sphereRadius = cylinderRadius;
+    const coefficient = cylinderRadius * cylinderRadius * height - (4 / 3) * sphereRadius ** 3;
+    return numericQuestion({
+      stem: `A sphere of radius ${sphereRadius} is removed from a cylinder of radius ${cylinderRadius} and height ${height}. What is the coefficient of pi in the remaining volume?`,
+      answer: coefficient,
+      hint: "Subtract the sphere's volume from the cylinder's volume.",
+      explanation: `Cylinder volume is ${cylinderRadius * cylinderRadius * height}pi. Sphere volume is (4/3)pi(${sphereRadius}^3) = ${formatNumber((4 / 3) * sphereRadius ** 3)}pi. The remaining coefficient is ${formatNumber(coefficient)}.`
+    });
+  }
+
+  if (type === "multi") {
+    if (variant === 0) {
+      const total = 90 + (seed % 4) * 10;
+      const groupA = 50 + (seed % 3) * 5;
+      const groupB = total - 20;
+      const lower = groupA + groupB - total;
+      const upper = Math.min(groupA, groupB);
+      const choices = [lower - 1, lower, lower + 5, Math.floor((lower + upper) / 2), upper, upper + 1];
+      const answer = choices.filter(value => value >= lower && value <= upper).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `In a group of ${total} people, ${groupA} study French and ${groupB} study Spanish. Which listed values could be the number who study both languages?`,
+        choices: choices.map(String),
+        answer,
+        hint: "The overlap must be at least A + B - total and at most the smaller group.",
+        explanation: `The overlap must be from ${lower} through ${upper}, inclusive. The listed possible values are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 1) {
+      const threshold = 30 + (seed % 4) * 10;
+      const choices = [15, 24, 30, 36, 45, 60];
+      const answer = choices.filter(value => value * 1.5 > threshold).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `A rate of x miles per hour is equal to 1.5x feet per second, approximately. Which listed speeds in miles per hour correspond to more than ${threshold} feet per second?`,
+        choices: choices.map(String),
+        answer,
+        hint: "Convert each listed speed using the given approximation.",
+        explanation: `The condition is 1.5x > ${threshold}, or x > ${formatNumber(threshold / 1.5)}. The listed speeds that work are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 2) {
+      const choices = [2, 3, 4, 5, 6, 7];
+      const answer = choices.filter(value => value / 8 > 1 / 2).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: "A fair 8-sided die is rolled once. Which listed values of n make the probability of rolling at most n greater than 1/2?",
+        choices: choices.map(String),
+        answer,
+        hint: "There are 8 equally likely outcomes.",
+        explanation: `The probability is n/8, which is greater than 1/2 when n > 4. The listed values are ${answer.join(", ")}.`
+      };
+    }
+    if (variant === 3) {
+      const mean = 20 + (seed % 5);
+      const choices = [mean - 8, mean - 5, mean - 1, mean + 1, mean + 5, mean + 8];
+      const answer = choices.filter(value => Math.abs(value - mean) > 5).map(String);
+      return {
+        type: "multiple",
+        subtype: "Multiple Choice, Select One or More",
+        directions: "Select all choices that apply.",
+        prompt: `A data set has mean ${mean}. Which listed values are more than 5 units from the mean?`,
+        choices: choices.map(String),
+        answer,
+        hint: "Compare each value's distance from the mean.",
+        explanation: `The values more than 5 units from ${mean} are ${answer.join(", ")}.`
+      };
+    }
+    const ratioA = 3 + (seed % 3);
+    const ratioB = ratioA + 2;
+    const choices = [ratioA, ratioB, ratioA + ratioB, 2 * ratioA, 2 * ratioB, 3 * (ratioA + ratioB)];
+    const answer = choices.filter(value => value % (ratioA + ratioB) === 0).map(String);
+    return {
+      type: "multiple",
+      subtype: "Multiple Choice, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `A collection is split in the ratio ${ratioA}:${ratioB}. Which listed totals could the collection have if all items are whole items?`,
+      choices: choices.map(String),
+      answer,
+      hint: "The total must be a multiple of the sum of the ratio parts.",
+      explanation: `The total must be a multiple of ${ratioA + ratioB}. The listed possible totals are ${answer.join(", ")}.`
+    };
+  }
+
+  return makeDataInterpretation(seed, testIndex, sectionNumber, itemIndex);
+}
+
+function makeAdvancedDataQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  if (type === "qc") return makeDataQuantComparison(seed, testIndex, sectionNumber, itemIndex);
+  if (type === "single") return makeDataSingleQuestion(seed, testIndex, sectionNumber, itemIndex);
+  if (type === "numeric") return makeDataNumericQuestion(seed, testIndex, sectionNumber, itemIndex);
+  if (type === "multi") return makeDataMultipleQuestion(seed, testIndex, sectionNumber, itemIndex);
+  return makeDataInterpretation(seed + 23, testIndex, sectionNumber, itemIndex);
+}
+
+function makeDataQuantComparison(seed) {
+  const base = 70 + (seed % 5) * 5;
+  const points = [
+    { label: "Q1", value: base },
+    { label: "Q2", value: base + 12 },
+    { label: "Q3", value: base + 7 },
+    { label: "Q4", value: base + 19 }
+  ];
+  return {
+    ...qcQuestion({
+      stem: "The line graph shows quarterly subscriptions.",
+      quantityA: "The increase from Q1 to Q2",
+      quantityB: "The increase from Q3 to Q4",
+      answer: "C",
+      hint: "Compare the changes between the two pairs of quarters.",
+      explanation: `Q1 to Q2 increases by 12. Q3 to Q4 also increases by 12, so the two quantities are equal.`
+    }),
+    dataGraph: {
+      type: "line",
+      caption: "Quarterly subscriptions",
+      yLabel: "Subscriptions",
+      points
+    }
+  };
+}
+
+function makeDataSingleQuestion(seed) {
+  const triangle = buildCoordinateTriangle(seed);
+  return {
+    ...singleQuant({
+      stem: "In the coordinate graph shown, what is the area of triangle ABC?",
+      choices: numericChoices(triangle.area, [triangle.base + triangle.height, triangle.area / 2, triangle.base * triangle.height, triangle.area + triangle.height]),
+      answer: formatNumber(triangle.area),
+      hint: "Use the horizontal side as the base and count the vertical height from the graph.",
+      explanation: `AB has length ${triangle.base}, and the height to AB is ${triangle.height}. The area is (1/2)(${triangle.base})(${triangle.height}) = ${formatNumber(triangle.area)}.`
+    }),
+    dataGraph: triangle.dataGraph
+  };
+}
+
+function makeDataNumericQuestion(seed) {
+  const matrix = buildSurveyMatrix(seed);
+  return {
+    ...numericQuestion({
+      stem: "In the two-way table shown, how many in-person students are undergraduates?",
+      answer: matrix.inPersonUndergraduate,
+      hint: "Use the row and column totals to fill the table.",
+      explanation: `Online undergraduates = ${matrix.online} - ${matrix.onlineGraduate} = ${matrix.onlineUndergraduate}. In-person undergraduates = ${matrix.undergraduate} - ${matrix.onlineUndergraduate} = ${matrix.inPersonUndergraduate}.`
+    }),
+    dataTable: matrix.dataTable
+  };
+}
+
+function makeDataMultipleQuestion(seed) {
+  const base = 80 + (seed % 4) * 10;
+  const table = [
+    ["A", base, base + 20],
+    ["B", base + 40, base + 52],
+    ["C", base + 10, base + 30],
+    ["D", base + 60, base + 78]
+  ];
+  const answer = table
+    .filter(row => (row[2] - row[1]) / row[1] > 0.18)
+    .map(row => row[0]);
+  return {
+    type: "multiple",
+    subtype: "Data Interpretation, Select One or More",
+    directions: "Use the table to answer the question. Select all choices that apply.",
+    prompt: "Which programs had a percent increase greater than 18%?",
+    dataTable: {
+      caption: "Program participation",
+      headers: ["Program", "Year 1", "Year 2"],
+      rows: table
+    },
+    choices: table.map(row => row[0]),
+    answer,
+    hint: "Percent increase is increase divided by the original value.",
+    explanation: `The percent increases are ${table.map(row => `${row[0]}: ${formatNumber((row[2] - row[1]) / row[1] * 100)}%`).join(", ")}. The programs above 18% are ${answer.join(", ")}.`
+  };
+}
+
+function buildSurveyMatrix(seed) {
+  const offset = seed % 5;
+  const total = 200 + 10 * offset;
+  const online = 120 + 5 * offset;
+  const graduate = 90 + 5 * offset;
+  const onlineGraduate = 50 + 2 * offset;
+  const inPerson = total - online;
+  const undergraduate = total - graduate;
+  const onlineUndergraduate = online - onlineGraduate;
+  const inPersonGraduate = graduate - onlineGraduate;
+  const inPersonUndergraduate = undergraduate - onlineUndergraduate;
+  return {
+    total,
+    online,
+    graduate,
+    onlineGraduate,
+    inPerson,
+    undergraduate,
+    onlineUndergraduate,
+    inPersonGraduate,
+    inPersonUndergraduate,
+    dataTable: {
+      caption: "Students by format and level",
+      headers: ["Format", "Undergraduate", "Graduate", "Total"],
+      rows: [
+        ["Online", "", onlineGraduate, online],
+        ["In person", "", "", inPerson],
+        ["Total", undergraduate, graduate, total]
+      ]
+    }
+  };
+}
+
+function buildCoordinateTriangle(seed) {
+  const x = 1 + (seed % 2);
+  const y = 1 + ((seed + 1) % 2);
+  const base = 6 + (seed % 3) * 2;
+  const height = 5 + (seed % 4);
+  const cOffset = 2 + (seed % Math.max(2, base - 3));
+  const points = [
+    { label: "A", x, y },
+    { label: "B", x: x + base, y },
+    { label: "C", x: x + cOffset, y: y + height }
+  ];
+  return {
+    base,
+    height,
+    area: base * height / 2,
+    dataGraph: {
+      type: "coordinate",
+      caption: "Triangle ABC on the coordinate plane",
+      xLabel: "x",
+      yLabel: "y",
+      xMin: 0,
+      xMax: x + base + 2,
+      yMin: 0,
+      yMax: y + height + 2,
+      points,
+      segments: [["A", "B"], ["B", "C"], ["C", "A"]]
+    }
+  };
 }
 
 function selectGeometryTopic(focusName, itemIndex) {
@@ -2086,7 +2791,31 @@ function makeLineAngleQuestion(type, seed, testIndex, sectionNumber, itemIndex) 
 }
 
 function makeTriangleQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  const hardVariant = (seed + itemIndex) % 3;
   if (type === "qc") {
+    if (hardVariant === 1) {
+      return qcQuestion({
+        stem: "A triangle has side lengths 8, 11, and x.",
+        quantityA: "The perimeter of the triangle",
+        quantityB: "30",
+        answer: "D",
+        hint: "Use the triangle inequality to find the range of x, then test values on both sides of 11.",
+        explanation: "The third side must satisfy 3 < x < 19, so the perimeter is 19 + x. If x = 10, the perimeter is 29; if x = 12, the perimeter is 31. The relationship cannot be determined."
+      });
+    }
+    if (hardVariant === 2) {
+      const scale = 2 + (seed % 3);
+      const smallBase = 5 + (seed % 4);
+      const largeBase = smallBase * scale;
+      return qcQuestion({
+        stem: `Triangle A is similar to Triangle B. A side of Triangle A has length ${smallBase}, and the corresponding side of Triangle B has length ${largeBase}.`,
+        quantityA: "Area of Triangle B",
+        quantityB: `${scale * scale} times the area of Triangle A`,
+        answer: "C",
+        hint: "Areas of similar figures scale by the square of the linear scale factor.",
+        explanation: `The linear scale factor is ${largeBase}/${smallBase} = ${scale}, so the area scale factor is ${scale}^2 = ${scale * scale}.`
+      });
+    }
     const vertexAngle = 36 + (seed % 5) * 12;
     const baseAngle = (180 - vertexAngle) / 2;
     const answer = baseAngle > vertexAngle ? "A" : baseAngle < vertexAngle ? "B" : "C";
@@ -2101,6 +2830,34 @@ function makeTriangleQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   if (type === "single") {
+    if (hardVariant === 1) {
+      const triangle = buildCoordinateTriangle(seed);
+      return {
+        type: "single",
+        subtype: "Geometry: Triangles",
+        directions: "Use the coordinate graph and select one answer choice.",
+        prompt: "What is the area of triangle ABC?",
+        dataGraph: triangle.dataGraph,
+        choices: numericChoices(triangle.area, [triangle.base + triangle.height, triangle.area / 2, triangle.base * triangle.height, triangle.area + triangle.height]),
+        answer: formatNumber(triangle.area),
+        hint: "Use AB as the base and count the vertical height.",
+        explanation: `AB = ${triangle.base}, and the height is ${triangle.height}. The area is (1/2)(${triangle.base})(${triangle.height}) = ${formatNumber(triangle.area)}.`
+      };
+    }
+    if (hardVariant === 2) {
+      const side = 6 + (seed % 4) * 2;
+      const areaCoefficient = side * side / 4;
+      return {
+        type: "single",
+        subtype: "Geometry: Triangles",
+        directions: "Select one answer choice.",
+        prompt: `An equilateral triangle has side length ${side}. What is its area?`,
+        choices: rotateChoices([`${formatNumber(areaCoefficient)}sqrt(3)`, `${side * side}sqrt(3)`, `${formatNumber(side * side / 2)}sqrt(3)`, `${formatNumber(areaCoefficient)}pi`, String(side * side)], seed),
+        answer: `${formatNumber(areaCoefficient)}sqrt(3)`,
+        hint: "The area of an equilateral triangle is (s^2 sqrt(3))/4.",
+        explanation: `Area = (${side}^2 sqrt(3))/4 = ${formatNumber(areaCoefficient)}sqrt(3).`
+      };
+    }
     const triples = [
       [3, 4, 5],
       [5, 12, 13],
@@ -2123,6 +2880,37 @@ function makeTriangleQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   if (type === "numeric") {
+    if (hardVariant === 1) {
+      const triple = [
+        [9, 12, 15],
+        [12, 16, 20],
+        [15, 20, 25]
+      ][seed % 3];
+      const altitude = triple[0] * triple[1] / triple[2];
+      return {
+        type: "numeric",
+        subtype: "Geometry: Triangles",
+        directions: "Enter the exact value.",
+        prompt: `A right triangle has legs ${triple[0]} and ${triple[1]} and hypotenuse ${triple[2]}. What is the altitude to the hypotenuse?`,
+        answer: formatNumber(altitude),
+        hint: "Compute the area two ways: (1/2)ab = (1/2)ch.",
+        explanation: `The altitude to the hypotenuse is (${triple[0]} * ${triple[1]}) / ${triple[2]} = ${formatNumber(altitude)}.`
+      };
+    }
+    if (hardVariant === 2) {
+      const scale = 2 + (seed % 4);
+      const smallPerimeter = 18 + (seed % 4) * 3;
+      const largePerimeter = smallPerimeter * scale;
+      return {
+        type: "numeric",
+        subtype: "Geometry: Triangles",
+        directions: "Enter the exact value.",
+        prompt: `Two triangles are similar. The smaller triangle has perimeter ${smallPerimeter}, and the larger triangle's corresponding side lengths are ${scale} times as large. What is the perimeter of the larger triangle?`,
+        answer: String(largePerimeter),
+        hint: "Perimeter scales by the same factor as side length.",
+        explanation: `The larger perimeter is ${smallPerimeter} * ${scale} = ${largePerimeter}.`
+      };
+    }
     const exterior = 118 + (seed % 5) * 6;
     const remote = 42 + (seed % 4) * 5;
     const other = exterior - remote;
@@ -2157,6 +2945,20 @@ function makeTriangleQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   const base = 6 + (seed % 5) * 2;
+  if (hardVariant === 1) {
+    const triangle = buildCoordinateTriangle(seed);
+    return {
+      type: "single",
+      subtype: "Data Interpretation",
+      directions: "Use the coordinate graph to answer the question.",
+      prompt: "What is the area of triangle ABC?",
+      dataGraph: triangle.dataGraph,
+      choices: numericChoices(triangle.area, [triangle.base + triangle.height, triangle.area / 2, triangle.base * triangle.height, triangle.area + triangle.height]),
+      answer: formatNumber(triangle.area),
+      hint: "Use AB as the base.",
+      explanation: `AB = ${triangle.base}, and the height is ${triangle.height}. Area = ${formatNumber(triangle.area)}.`
+    };
+  }
   const table = [
     ["A", base, base + 2],
     ["B", base + 3, base],
@@ -2182,7 +2984,33 @@ function makeTriangleQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
 }
 
 function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
+  const hardVariant = (seed + itemIndex) % 3;
   if (type === "qc") {
+    if (hardVariant === 1) {
+      return qcQuestion({
+        stem: "A rectangular solid has volume 64. Its dimensions are positive numbers.",
+        quantityA: "The surface area of the rectangular solid",
+        quantityB: "96",
+        answer: "D",
+        hint: "A cube gives one case, but non-cube dimensions with the same volume give another.",
+        explanation: "A 4 by 4 by 4 cube has surface area 96. A 2 by 4 by 8 rectangular solid has the same volume but surface area 112. The relationship cannot be determined."
+      });
+    }
+    if (hardVariant === 2) {
+      const side = 6 + (seed % 3) * 2;
+      const radius = side / 2;
+      const sphereVolumeCoefficient = (4 / 3) * radius ** 3;
+      const remaining = side ** 3 - sphereVolumeCoefficient * 3.14;
+      const sphereApprox = sphereVolumeCoefficient * 3.14;
+      return qcQuestion({
+        stem: `A sphere is inscribed in a cube with side length ${side}. Use pi = 3.14 for comparison.`,
+        quantityA: "The volume of the sphere",
+        quantityB: "The volume inside the cube but outside the sphere",
+        answer: sphereApprox > remaining ? "A" : sphereApprox < remaining ? "B" : "C",
+        hint: "The sphere diameter equals the cube side length.",
+        explanation: `The cube volume is ${side ** 3}. The sphere volume is about ${formatNumber(sphereApprox)}, leaving about ${formatNumber(remaining)} outside the sphere.`
+      });
+    }
     const side = 3 + (seed % 6);
     const volume = side ** 3;
     const surfaceArea = 6 * side * side;
@@ -2198,6 +3026,51 @@ function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   if (type === "single") {
+    if (hardVariant === 1) {
+      const radius = 3 + (seed % 3);
+      const height = 2 * radius + 4;
+      const cylinderCoefficient = radius * radius * height;
+      const sphereCoefficient = (4 / 3) * radius ** 3;
+      const remainingCoefficient = cylinderCoefficient - sphereCoefficient;
+      return {
+        type: "single",
+        subtype: "Geometry: 3D Shapes",
+        directions: "Select one answer choice.",
+        prompt: `A sphere of radius ${radius} is removed from a cylinder with radius ${radius} and height ${height}. What is the remaining volume?`,
+        choices: rotateChoices([
+          `${formatNumber(remainingCoefficient)}pi`,
+          `${cylinderCoefficient}pi`,
+          `${formatNumber(sphereCoefficient)}pi`,
+          `${formatNumber(cylinderCoefficient + sphereCoefficient)}pi`,
+          `${formatNumber(radius * height)}pi`
+        ], seed),
+        answer: `${formatNumber(remainingCoefficient)}pi`,
+        hint: "Subtract the sphere's volume from the cylinder's volume.",
+        explanation: `Cylinder volume is ${cylinderCoefficient}pi. Sphere volume is ${formatNumber(sphereCoefficient)}pi. The remaining volume is ${formatNumber(remainingCoefficient)}pi.`
+      };
+    }
+    if (hardVariant === 2) {
+      const side = 6 + (seed % 3) * 2;
+      const radius = side / 2;
+      const cubeVolume = side ** 3;
+      const sphereCoefficient = (4 / 3) * radius ** 3;
+      return {
+        type: "single",
+        subtype: "Geometry: 3D Shapes",
+        directions: "Select one answer choice.",
+        prompt: `A sphere is inscribed in a cube with side length ${side}. What is the volume inside the cube but outside the sphere?`,
+        choices: rotateChoices([
+          `${cubeVolume} - ${formatNumber(sphereCoefficient)}pi`,
+          `${cubeVolume} - ${formatNumber(radius * radius)}pi`,
+          `${formatNumber(sphereCoefficient)}pi`,
+          `${side ** 2} - ${formatNumber(sphereCoefficient)}pi`,
+          `${cubeVolume + side} - ${formatNumber(sphereCoefficient)}pi`
+        ], seed),
+        answer: `${cubeVolume} - ${formatNumber(sphereCoefficient)}pi`,
+        hint: "The sphere diameter is the cube side.",
+        explanation: `The sphere radius is ${radius}. Cube volume is ${cubeVolume}; sphere volume is ${formatNumber(sphereCoefficient)}pi.`
+      };
+    }
     const length = 4 + (seed % 5);
     const width = 3 + (seed % 4);
     const height = 5 + (seed % 3);
@@ -2216,6 +3089,20 @@ function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   if (type === "numeric") {
+    if (hardVariant === 1) {
+      const radius = 3 + (seed % 3);
+      const height = 2 * radius + 4;
+      const coefficient = radius * radius * height - (4 / 3) * radius ** 3;
+      return {
+        type: "numeric",
+        subtype: "Geometry: 3D Shapes",
+        directions: "Enter the exact value.",
+        prompt: `A sphere of radius ${radius} is removed from a cylinder with radius ${radius} and height ${height}. What is the coefficient of pi in the remaining volume?`,
+        answer: formatNumber(coefficient),
+        hint: "Compute cylinder coefficient minus sphere coefficient.",
+        explanation: `Remaining coefficient = ${radius * radius * height} - ${formatNumber((4 / 3) * radius ** 3)} = ${formatNumber(coefficient)}.`
+      };
+    }
     const length = 3 + (seed % 5);
     const width = 4 + (seed % 4);
     const height = 5 + (seed % 3);
@@ -2232,6 +3119,21 @@ function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   if (type === "multi") {
+    if (hardVariant === 1) {
+      const sideNeeded = 8 + (seed % 3);
+      const choices = [sideNeeded - 3, sideNeeded - 1, sideNeeded, sideNeeded + 1, sideNeeded + 3, sideNeeded + 5];
+      const answer = choices.filter(value => value >= sideNeeded).map(String);
+      return {
+        type: "multiple",
+        subtype: "Geometry: 3D Shapes",
+        directions: "Select all choices that apply.",
+        prompt: `A cube must contain a vertical cylinder of height ${sideNeeded} and diameter ${sideNeeded - 2}. Which listed cube side lengths are large enough?`,
+        choices: choices.map(String),
+        answer,
+        hint: "The side of the cube must be at least the cylinder's height and diameter.",
+        explanation: `The height ${sideNeeded} is the larger requirement, so the side must be at least ${sideNeeded}. The listed values are ${answer.join(", ")}.`
+      };
+    }
     const choices = [
       [2, 3, 8],
       [3, 4, 5],
@@ -2256,6 +3158,30 @@ function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
   }
 
   const base = 3 + (seed % 4);
+  if (hardVariant === 1) {
+    const table = [
+      ["A", base + 3, base + 1],
+      ["B", base + 4, base + 2],
+      ["C", base + 5, base + 1]
+    ];
+    const remaining = table.map(row => row[1] ** 3 - (4 / 3) * row[2] ** 3 * 3);
+    const maxIndex = remaining.indexOf(Math.max(...remaining));
+    return {
+      type: "single",
+      subtype: "Data Interpretation",
+      directions: "Use pi = 3 and the table to answer the question.",
+      prompt: "For which cube is the volume outside the spherical cavity greatest?",
+      dataTable: {
+        caption: "Cubes with spherical cavities",
+        headers: ["Cube", "Cube side", "Cavity radius"],
+        rows: table
+      },
+      choices: table.map(row => row[0]),
+      answer: table[maxIndex][0],
+      hint: "Subtract sphere volume from cube volume for each row.",
+      explanation: `Using pi = 3, the remaining volumes are ${table.map((row, i) => `${row[0]}: ${formatNumber(remaining[i])}`).join(", ")}. The greatest is ${table[maxIndex][0]}.`
+    };
+  }
   const table = [
     ["Box A", base, base + 1, base + 4],
     ["Box B", base + 2, base + 2, base + 1],
@@ -2281,7 +3207,7 @@ function makeThreeDQuestion(type, seed, testIndex, sectionNumber, itemIndex) {
 }
 
 function makeQuantComparison(seed, testIndex, sectionNumber, itemIndex) {
-  const variant = (itemIndex + testIndex * 2 + sectionNumber) % 8;
+  const variant = (itemIndex + testIndex * 2 + sectionNumber) % 16;
   if (variant === 0) {
     const n = 5 + (seed % 11);
     const a = 2 * n + 3;
@@ -2366,13 +3292,93 @@ function makeQuantComparison(seed, testIndex, sectionNumber, itemIndex) {
       hint: "Track the sign after squaring and cubing a negative number."
     });
   }
+  if (variant === 7) {
+    return qcQuestion({
+      stem: "a and b are integers, and a > b.",
+      quantityA: "a^2",
+      quantityB: "b^2",
+      answer: "D",
+      explanation: "If a = 3 and b = 2, Quantity A is greater. If a = 1 and b = -2, Quantity B is greater. The relationship cannot be determined.",
+      hint: "The sign of each integer matters when comparing squares."
+    });
+  }
+  if (variant === 8) {
+    return qcQuestion({
+      stem: "x and y are positive numbers, and x + y = 10.",
+      quantityA: "xy",
+      quantityB: "24",
+      answer: "D",
+      explanation: "If x = 5 and y = 5, xy = 25. If x = 1 and y = 9, xy = 9. Quantity A can be greater or less than Quantity B.",
+      hint: "The same sum can produce different products."
+    });
+  }
+  if (variant === 9) {
+    return qcQuestion({
+      stem: "x^2 = 16.",
+      quantityA: "x",
+      quantityB: "0",
+      answer: "D",
+      explanation: "x can be 4 or -4. Quantity A can be greater than or less than Quantity B.",
+      hint: "A square equation can have a positive and a negative solution."
+    });
+  }
+  if (variant === 10) {
+    return qcQuestion({
+      stem: "A triangle has side lengths 5, 7, and x.",
+      quantityA: "x",
+      quantityB: "12",
+      answer: "B",
+      explanation: "By the triangle inequality, x must be less than 5 + 7 = 12. Therefore Quantity B is greater.",
+      hint: "The sum of any two side lengths must be greater than the third side."
+    });
+  }
+  if (variant === 11) {
+    return qcQuestion({
+      stem: "a/b = 3/5 and b/c = 10/9.",
+      quantityA: "a/c",
+      quantityB: "2/3",
+      answer: "C",
+      explanation: "a/c = (a/b)(b/c) = (3/5)(10/9) = 30/45 = 2/3.",
+      hint: "Multiply the two ratios to eliminate b."
+    });
+  }
+  if (variant === 12) {
+    return qcQuestion({
+      stem: "The nth term of a sequence is a_n = 2n^2 - n.",
+      quantityA: "a_5 - a_4",
+      quantityB: "a_4 - a_3",
+      answer: "A",
+      explanation: "a_5 - a_4 = 45 - 28 = 17, while a_4 - a_3 = 28 - 15 = 13. Quantity A is greater.",
+      hint: "Compute the requested terms rather than assuming the sequence is arithmetic."
+    });
+  }
+  if (variant === 13) {
+    return qcQuestion({
+      stem: "A data set of five numbers has mean 10 and median 10.",
+      quantityA: "The greatest number in the data set",
+      quantityB: "20",
+      answer: "D",
+      explanation: "The set {10, 10, 10, 10, 10} gives Quantity B greater. The set {0, 0, 10, 10, 30} gives Quantity A greater.",
+      hint: "Mean and median do not fix the spread."
+    });
+  }
+  if (variant === 14) {
+    return qcQuestion({
+      stem: "0 < x < 1.",
+      quantityA: "sqrt(x)",
+      quantityB: "x^2",
+      answer: "A",
+      explanation: "For 0 < x < 1, sqrt(x) > x and x > x^2, so sqrt(x) > x^2.",
+      hint: "Fractions between 0 and 1 become smaller when squared and larger when square-rooted."
+    });
+  }
   return qcQuestion({
-    stem: "a and b are integers, and a > b.",
-    quantityA: "a^2",
-    quantityB: "b^2",
+    stem: "n is a positive integer.",
+    quantityA: "The remainder when n is divided by 5",
+    quantityB: "The remainder when n + 2 is divided by 5",
     answer: "D",
-    explanation: "If a = 3 and b = 2, Quantity A is greater. If a = 1 and b = -2, Quantity B is greater. The relationship cannot be determined.",
-    hint: "The sign of each integer matters when comparing squares."
+    explanation: "If n = 1, the remainders are 1 and 3, so Quantity B is greater. If n = 4, the remainders are 4 and 1, so Quantity A is greater.",
+    hint: "Try values of n from different positions in the mod 5 cycle."
   });
 }
 
@@ -2397,7 +3403,7 @@ function qcQuestion({ stem, quantityA, quantityB, answer, explanation, hint }) {
 }
 
 function makeQuantSingle(seed, testIndex, sectionNumber, itemIndex) {
-  const variant = (itemIndex + testIndex + sectionNumber) % 12;
+  const variant = (itemIndex + testIndex + sectionNumber) % 20;
   if (variant === 0) {
     const a = 3 + (seed % 8);
     const b = 2 + ((seed + 3) % 7);
@@ -2543,18 +3549,124 @@ function makeQuantSingle(seed, testIndex, sectionNumber, itemIndex) {
       explanation: `The slope is (${y2} - ${y1}) / (${x2} - ${x1}) = ${rise}/${run} = ${formatNumber(slope)}.`
     });
   }
-  const radius = 4 + (seed % 4);
-  const centralAngle = 90 + (seed % 3) * 30;
-  const sectorArea = centralAngle / 360 * radius * radius;
-  const sectorChoices = numericChoices(sectorArea, [radius * radius, centralAngle / 360 * radius, sectorArea + radius, sectorArea * 2])
-    .map(value => `${value}pi`);
-  return singleQuant({
-    stem: `A sector of a circle has radius ${radius} and central angle ${centralAngle} degrees. What is the area of the sector in terms of pi?`,
-    choices: sectorChoices,
-    answer: `${formatNumber(sectorArea)}pi`,
-    hint: "Sector area is the same fraction of pi r^2 as the central angle is of 360 degrees.",
-    explanation: `The sector area is (${centralAngle}/360) * pi * ${radius}^2 = ${formatNumber(sectorArea)}pi.`
-  });
+  if (variant === 11) {
+    const radius = 4 + (seed % 4);
+    const centralAngle = 90 + (seed % 3) * 30;
+    const sectorArea = centralAngle / 360 * radius * radius;
+    const sectorChoices = numericChoices(sectorArea, [radius * radius, centralAngle / 360 * radius, sectorArea + radius, sectorArea * 2])
+      .map(value => `${value}pi`);
+    return singleQuant({
+      stem: `A sector of a circle has radius ${radius} and central angle ${centralAngle} degrees. What is the area of the sector in terms of pi?`,
+      choices: sectorChoices,
+      answer: `${formatNumber(sectorArea)}pi`,
+      hint: "Sector area is the same fraction of pi r^2 as the central angle is of 360 degrees.",
+      explanation: `The sector area is (${centralAngle}/360) * pi * ${radius}^2 = ${formatNumber(sectorArea)}pi.`
+    });
+  }
+  if (variant === 12) {
+    const item = [
+      { a: 2, b: -11, c: 5, larger: "5", other: "1/2" },
+      { a: 3, b: -13, c: 4, larger: "4", other: "1/3" },
+      { a: 2, b: -9, c: 4, larger: "4", other: "1/2" }
+    ][seed % 3];
+    return singleQuant({
+      stem: `What is the larger solution of ${item.a}x^2 ${formatSigned(item.b)}x ${formatSigned(item.c)} = 0?`,
+      choices: rotateChoices([item.larger, item.other, String(Number(item.larger) + 1), "0", String(Number(item.larger) - 1)], seed),
+      answer: item.larger,
+      hint: "Apply the quadratic formula: x = (-b +/- sqrt(b^2 - 4ac)) / 2a.",
+      explanation: `The quadratic formula gives roots ${item.other} and ${item.larger}; the larger solution is ${item.larger}.`
+    });
+  }
+  if (variant === 13) {
+    const h = 5 + (seed % 4);
+    const constant = 4 + (seed % 5);
+    const k = h * h - constant;
+    return singleQuant({
+      stem: `When x^2 - ${2 * h}x + ${constant} is written as (x - ${h})^2 - k, what is k?`,
+      choices: numericChoices(k, [h * h, constant, k + h, k - 1]),
+      answer: String(k),
+      hint: "Complete the square by adding and subtracting h^2.",
+      explanation: `(x - ${h})^2 = x^2 - ${2 * h}x + ${h * h}, so x^2 - ${2 * h}x + ${constant} = (x - ${h})^2 - ${k}.`
+    });
+  }
+  if (variant === 14) {
+    const first = 3 + (seed % 4);
+    const ratio = 2;
+    const fifth = first * ratio ** 4;
+    return singleQuant({
+      stem: `A geometric sequence has first term ${first} and common ratio ${ratio}. What is the 5th term?`,
+      choices: numericChoices(fifth, [first + 4 * ratio, first * ratio ** 3, fifth / 2, fifth + ratio]),
+      answer: String(fifth),
+      hint: "The 5th term is four common-ratio multiplications after the first term.",
+      explanation: `a_5 = ${first} * ${ratio}^4 = ${fifth}.`
+    });
+  }
+  if (variant === 15) {
+    const side = 6 + (seed % 3) * 2;
+    const radius = side / 2;
+    const cubeVolume = side ** 3;
+    const sphereCoefficient = (4 / 3) * radius ** 3;
+    return singleQuant({
+      stem: `A sphere is inscribed in a cube with side length ${side}. What is the volume inside the cube but outside the sphere?`,
+      choices: rotateChoices([
+        `${cubeVolume} - ${formatNumber(sphereCoefficient)}pi`,
+        `${cubeVolume} - ${formatNumber(radius * radius)}pi`,
+        `${formatNumber(sphereCoefficient)}pi`,
+        `${side ** 2} - ${formatNumber(sphereCoefficient)}pi`,
+        `${cubeVolume} + ${formatNumber(sphereCoefficient)}pi`
+      ], seed),
+      answer: `${cubeVolume} - ${formatNumber(sphereCoefficient)}pi`,
+      hint: "The sphere's diameter equals the cube's side length.",
+      explanation: `The sphere radius is ${radius}. Cube volume is ${cubeVolume}, and sphere volume is ${formatNumber(sphereCoefficient)}pi. The remaining volume is ${cubeVolume} - ${formatNumber(sphereCoefficient)}pi.`
+    });
+  }
+  if (variant === 16) {
+    const red = 5 + (seed % 4);
+    const blue = 4 + (seed % 5);
+    const total = red + blue;
+    const probability = red / total * blue / (total - 1) + blue / total * red / (total - 1);
+    return singleQuant({
+      stem: `A bag contains ${red} red chips and ${blue} blue chips. Two chips are selected without replacement. What is the probability that the two chips are different colors?`,
+      choices: numericChoices(probability, [red / total, blue / total, red / total * blue / (total - 1), red / total * (red - 1) / (total - 1)]),
+      answer: formatNumber(probability),
+      hint: "Different colors can happen in two orders: red then blue or blue then red.",
+      explanation: `The probability is (${red}/${total})(${blue}/${total - 1}) + (${blue}/${total})(${red}/${total - 1}) = ${formatNumber(probability)}.`
+    });
+  }
+  if (variant === 17) {
+    const feetPerSecond = 44 + (seed % 4) * 11;
+    const mph = feetPerSecond * 3600 / 5280;
+    return singleQuant({
+      stem: `A runner moves at ${feetPerSecond} feet per second. What is the runner's speed in miles per hour?`,
+      choices: numericChoices(mph, [feetPerSecond / 2, feetPerSecond, mph + 5, mph * 2]),
+      answer: formatNumber(mph),
+      hint: "Convert seconds to hours and feet to miles.",
+      explanation: `${feetPerSecond} ft/s = ${feetPerSecond} * 3600 / 5280 = ${formatNumber(mph)} miles per hour.`
+    });
+  }
+  if (variant === 18) {
+    const cm = 12 + (seed % 4) * 3;
+    const kilometers = cm * 5 / 3;
+    const minutes = kilometers / 45 * 60;
+    return singleQuant({
+      stem: `On a scale drawing, 3 centimeters represents 5 kilometers. A road is ${cm} centimeters on the drawing. At 45 kilometers per hour, how many minutes are required to travel the road?`,
+      choices: numericChoices(minutes, [kilometers, minutes / 2, minutes + 10, cm * 5]),
+      answer: formatNumber(minutes),
+      hint: "Convert the map length to kilometers, then divide by the rate.",
+      explanation: `The actual distance is ${formatNumber(kilometers)} km. Time is ${formatNumber(kilometers / 45)} hours, or ${formatNumber(minutes)} minutes.`
+    });
+  }
+  const triangle = buildCoordinateTriangle(seed);
+  return {
+    ...singleQuant({
+      stem: "In the coordinate graph shown, what is the area of triangle ABC?",
+      choices: numericChoices(triangle.area, [triangle.base + triangle.height, triangle.area / 2, triangle.base * triangle.height, triangle.area + triangle.height]),
+      answer: formatNumber(triangle.area),
+      hint: "Use the horizontal side as the base and count the vertical height.",
+      explanation: `AB = ${triangle.base} and the height to AB is ${triangle.height}. Area = (1/2)(${triangle.base})(${triangle.height}) = ${formatNumber(triangle.area)}.`
+    }),
+    dataGraph: triangle.dataGraph
+  };
 }
 
 function singleQuant({ stem, choices, answer, hint, explanation }) {
@@ -2571,7 +3683,7 @@ function singleQuant({ stem, choices, answer, hint, explanation }) {
 }
 
 function makeQuantMultiple(seed, testIndex, sectionNumber, itemIndex) {
-  const variant = (itemIndex + testIndex + sectionNumber) % 7;
+  const variant = (itemIndex + testIndex + sectionNumber) % 12;
   if (variant === 0) {
     const divisor = 3 + (seed % 3);
     const choices = [5, 6, 7, 8, 9, 10].map((factor, index) => divisor * factor + (index % 3 === 2 ? 1 : 0));
@@ -2662,23 +3774,103 @@ function makeQuantMultiple(seed, testIndex, sectionNumber, itemIndex) {
       explanation: `The values within 2 units of ${mean} are ${answer.join(", ")}.`
     };
   }
-  const target = 18 + (seed % 4) * 6;
-  const choices = [1, 2, 3, 4, 5, 6].map(value => value + (seed % 2));
-  const answer = choices.filter(value => target / value > 4).map(String);
+  if (variant === 6) {
+    const target = 18 + (seed % 4) * 6;
+    const choices = [1, 2, 3, 4, 5, 6].map(value => value + (seed % 2));
+    const answer = choices.filter(value => target / value > 4).map(String);
+    return {
+      type: "multiple",
+      subtype: "Multiple Choice, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `For which listed values of n is ${target}/n greater than 4?`,
+      choices: choices.map(String),
+      answer,
+      hint: `Rewrite the inequality as n < ${formatNumber(target / 4)}.`,
+      explanation: `${target}/n > 4 when n < ${formatNumber(target / 4)}. The listed values that work are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 7) {
+    const low = 2 + (seed % 4);
+    const high = low + 6;
+    const choices = [low - 2, low, low + 1, low + 3, high, high + 2];
+    const answer = choices.filter(value => value > low && value < high).map(String);
+    return {
+      type: "multiple",
+      subtype: "Multiple Choice, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `Which listed values of x satisfy x^2 - ${low + high}x + ${low * high} < 0?`,
+      choices: choices.map(String),
+      answer,
+      hint: "Factor the quadratic and choose values between the roots.",
+      explanation: `The expression factors as (x - ${low})(x - ${high}), which is negative for ${low} < x < ${high}. The listed values are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 8) {
+    const total = 100 + (seed % 4) * 10;
+    const groupA = 55 + (seed % 3) * 5;
+    const groupB = total - 25;
+    const lower = groupA + groupB - total;
+    const upper = Math.min(groupA, groupB);
+    const choices = [lower - 2, lower, lower + 4, Math.floor((lower + upper) / 2), upper, upper + 2];
+    const answer = choices.filter(value => value >= lower && value <= upper).map(String);
+    return {
+      type: "multiple",
+      subtype: "Multiple Choice, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `Of ${total} applicants, ${groupA} submitted a portfolio and ${groupB} submitted test scores. Which listed values could be the number who submitted both?`,
+      choices: choices.map(String),
+      answer,
+      hint: "The overlap must be at least A + B - total and at most the smaller category.",
+      explanation: `The possible overlap is from ${lower} through ${upper}. The listed possible values are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 9) {
+    const choices = [2, 3, 4, 5, 6, 7];
+    const answer = choices.filter(value => value / 8 > 1 / 2).map(String);
+    return {
+      type: "multiple",
+      subtype: "Probability, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: "A fair 8-sided die numbered 1 through 8 is rolled. Which listed values of n make the probability of rolling at most n greater than 1/2?",
+      choices: choices.map(String),
+      answer,
+      hint: "Rolling at most n gives n favorable outcomes out of 8.",
+      explanation: `n/8 is greater than 1/2 when n > 4. The listed values are ${answer.join(", ")}.`
+    };
+  }
+  if (variant === 10) {
+    const first = 5 + (seed % 5);
+    const difference = 4 + (seed % 3);
+    const choices = [first, first + difference, first + 2 * difference + 1, first + 3 * difference, first + 5 * difference, first + 6 * difference + 2];
+    const answer = choices.filter(value => (value - first) % difference === 0 && value >= first).map(String);
+    return {
+      type: "multiple",
+      subtype: "Sequences, Select One or More",
+      directions: "Select all choices that apply.",
+      prompt: `An arithmetic sequence starts with ${first} and has common difference ${difference}. Which listed values are terms of the sequence?`,
+      choices: choices.map(String),
+      answer,
+      hint: "Subtract the first term and check for a nonnegative multiple of the common difference.",
+      explanation: `Terms have the form ${first} + ${difference}k. The listed terms are ${answer.join(", ")}.`
+    };
+  }
+  const sideNeeded = 8 + (seed % 3);
+  const choices = [sideNeeded - 3, sideNeeded - 1, sideNeeded, sideNeeded + 1, sideNeeded + 3, sideNeeded + 5];
+  const answer = choices.filter(value => value >= sideNeeded).map(String);
   return {
     type: "multiple",
-    subtype: "Multiple Choice, Select One or More",
+    subtype: "Geometry: 3D Shapes",
     directions: "Select all choices that apply.",
-    prompt: `For which listed values of n is ${target}/n greater than 4?`,
+    prompt: `A cube must contain a vertical cylinder of height ${sideNeeded} and diameter ${sideNeeded - 2}. Which listed cube side lengths are large enough?`,
     choices: choices.map(String),
     answer,
-    hint: `Rewrite the inequality as n < ${formatNumber(target / 4)}.`,
-    explanation: `${target}/n > 4 when n < ${formatNumber(target / 4)}. The listed values that work are ${answer.join(", ")}.`
+    hint: "The cube side must be at least the cylinder's height and at least its diameter.",
+    explanation: `The height requirement is stricter, so the side length must be at least ${sideNeeded}. The listed values are ${answer.join(", ")}.`
   };
 }
 
 function makeQuantNumeric(seed, testIndex, sectionNumber, itemIndex) {
-  const variant = (itemIndex + testIndex + sectionNumber) % 10;
+  const variant = (itemIndex + testIndex + sectionNumber) % 16;
   if (variant === 0) {
     const base = 6 + (seed % 8);
     const height = 4 + (seed % 6);
@@ -2780,14 +3972,81 @@ function makeQuantNumeric(seed, testIndex, sectionNumber, itemIndex) {
       explanation: `The original area is ${width * length}. The new area is ${width * length} * ${scale}^2 = ${newArea}.`
     });
   }
-  const low = 7 + (seed % 5);
-  const high = low + 13 + (seed % 4);
-  const range = high - low;
+  if (variant === 9) {
+    const low = 7 + (seed % 5);
+    const high = low + 13 + (seed % 4);
+    const range = high - low;
+    return numericQuestion({
+      stem: `The smallest value in a data set is ${low}, and the largest value is ${high}. What is the range of the data set?`,
+      answer: range,
+      hint: "Range is greatest value minus least value.",
+      explanation: `The range is ${high} - ${low} = ${range}.`
+    });
+  }
+  if (variant === 10) {
+    const r1 = 5 + (seed % 3);
+    const r2 = r1 + 4;
+    const b = -(r1 + r2);
+    const c = r1 * r2;
+    return numericQuestion({
+      stem: `What is the smaller solution of x^2 ${formatSigned(b)}x ${formatSigned(c)} = 0?`,
+      answer: r1,
+      hint: "Factor the quadratic or use the quadratic formula.",
+      explanation: `The equation factors as (x - ${r1})(x - ${r2}) = 0, so the smaller solution is ${r1}.`
+    });
+  }
+  if (variant === 11) {
+    const h = 5 + (seed % 5);
+    const k = 6 + (seed % 4);
+    return numericQuestion({
+      stem: `What is the minimum value of x^2 - ${2 * h}x + ${h * h + k}?`,
+      answer: k,
+      hint: "Complete the square.",
+      explanation: `x^2 - ${2 * h}x + ${h * h + k} = (x - ${h})^2 + ${k}, so the minimum value is ${k}.`
+    });
+  }
+  if (variant === 12) {
+    const matrix = buildSurveyMatrix(seed);
+    return {
+      ...numericQuestion({
+        stem: "In the two-way table shown, how many in-person students are undergraduates?",
+        answer: matrix.inPersonUndergraduate,
+        hint: "Use the row and column totals.",
+        explanation: `Online undergraduates = ${matrix.online} - ${matrix.onlineGraduate} = ${matrix.onlineUndergraduate}. In-person undergraduates = ${matrix.undergraduate} - ${matrix.onlineUndergraduate} = ${matrix.inPersonUndergraduate}.`
+      }),
+      dataTable: matrix.dataTable
+    };
+  }
+  if (variant === 13) {
+    const first = 2 + (seed % 5);
+    const second = first + 3;
+    const third = 2 * second - first;
+    const fourth = 2 * third - second;
+    return numericQuestion({
+      stem: `In a sequence, a_1 = ${first}, a_2 = ${second}, and each later term equals twice the previous term minus the term before it. What is a_4?`,
+      answer: fourth,
+      hint: "Compute a_3 first, then a_4.",
+      explanation: `a_3 = 2(${second}) - ${first} = ${third}; a_4 = 2(${third}) - ${second} = ${fourth}.`
+    });
+  }
+  if (variant === 14) {
+    const radius = 3 + (seed % 3);
+    const height = 2 * radius + 4;
+    const coefficient = radius * radius * height - (4 / 3) * radius ** 3;
+    return numericQuestion({
+      stem: `A sphere of radius ${radius} is removed from a cylinder of radius ${radius} and height ${height}. What is the coefficient of pi in the remaining volume?`,
+      answer: coefficient,
+      hint: "Subtract sphere volume from cylinder volume.",
+      explanation: `The cylinder volume is ${radius * radius * height}pi and the sphere volume is ${formatNumber((4 / 3) * radius ** 3)}pi, leaving ${formatNumber(coefficient)}pi.`
+    });
+  }
+  const feetPerSecond = 44 + (seed % 4) * 11;
+  const mph = feetPerSecond * 3600 / 5280;
   return numericQuestion({
-    stem: `The smallest value in a data set is ${low}, and the largest value is ${high}. What is the range of the data set?`,
-    answer: range,
-    hint: "Range is greatest value minus least value.",
-    explanation: `The range is ${high} - ${low} = ${range}.`
+    stem: `A vehicle travels at ${feetPerSecond} feet per second. What is its speed in miles per hour?`,
+    answer: mph,
+    hint: "Multiply by 3,600 and divide by 5,280.",
+    explanation: `${feetPerSecond} ft/s = ${feetPerSecond} * 3600 / 5280 = ${formatNumber(mph)} miles per hour.`
   });
 }
 
@@ -2804,7 +4063,7 @@ function numericQuestion({ stem, answer, hint, explanation }) {
 }
 
 function makeDataInterpretation(seed, testIndex, sectionNumber, itemIndex) {
-  const variant = (itemIndex + testIndex + sectionNumber) % 6;
+  const variant = (itemIndex + testIndex + sectionNumber) % 12;
   const base = 40 + (seed % 10);
   if (variant === 0) {
     const table = [
@@ -2922,26 +4181,150 @@ function makeDataInterpretation(seed, testIndex, sectionNumber, itemIndex) {
       explanation: `The percent increases are ${table.map((row, i) => `${row[0]}: ${formatNumber(increases[i] * 100)}%`).join(", ")}. The greatest is program ${table[maxIndex][0]}.`
     };
   }
-  const table = [
-    ["Local", base + 12, base + 18],
-    ["Regional", base + 20, base + 25],
-    ["National", base + 26, base + 34]
+  if (variant === 5) {
+    const table = [
+      ["Local", base + 12, base + 18],
+      ["Regional", base + 20, base + 25],
+      ["National", base + 26, base + 34]
+    ];
+    const totalYear2 = table.reduce((total, row) => total + row[2], 0);
+    const share = table[2][2] / totalYear2 * 100;
+    return {
+      type: "numeric",
+      subtype: "Data Interpretation",
+      directions: "Use the table to answer the question.",
+      prompt: "National sales in Year 2 were approximately what percent of total Year 2 sales?",
+      dataTable: {
+        caption: "Sales by market",
+        headers: ["Market", "Year 1", "Year 2"],
+        rows: table
+      },
+      answer: formatNumber(share),
+      hint: "Divide National Year 2 sales by total Year 2 sales, then multiply by 100.",
+      explanation: `Total Year 2 sales are ${totalYear2}. National's share is ${table[2][2]} / ${totalYear2} * 100 = ${formatNumber(share)}%.`
+    };
+  }
+  if (variant === 6) {
+    const matrix = buildSurveyMatrix(seed);
+    return {
+      type: "numeric",
+      subtype: "Data Interpretation: Two-Way Table",
+      directions: "Use the table to answer the question.",
+      prompt: "How many in-person students are undergraduates?",
+      dataTable: matrix.dataTable,
+      answer: String(matrix.inPersonUndergraduate),
+      hint: "Fill the blank cells using the row and column totals.",
+      explanation: `Online undergraduates = ${matrix.online} - ${matrix.onlineGraduate} = ${matrix.onlineUndergraduate}. In-person undergraduates = ${matrix.undergraduate} - ${matrix.onlineUndergraduate} = ${matrix.inPersonUndergraduate}.`
+    };
+  }
+  if (variant === 7) {
+    const bars = [
+      { label: "Alpha", value: base + 22 },
+      { label: "Beta", value: base + 38 },
+      { label: "Gamma", value: base + 31 },
+      { label: "Delta", value: base + 44 }
+    ];
+    const max = bars.reduce((best, item) => item.value > best.value ? item : best, bars[0]);
+    return {
+      type: "single",
+      subtype: "Data Interpretation: Graph",
+      directions: "Use the graph to answer the question.",
+      prompt: "Which project had the greatest output?",
+      dataGraph: {
+        type: "bar",
+        caption: "Project output",
+        yLabel: "Units",
+        bars
+      },
+      choices: bars.map(bar => bar.label),
+      answer: max.label,
+      hint: "Compare the bar heights.",
+      explanation: `${max.label} has the greatest output, ${max.value} units.`
+    };
+  }
+  if (variant === 8) {
+    const points = [
+      { label: "Week 1", value: base + 10 },
+      { label: "Week 2", value: base + 18 },
+      { label: "Week 3", value: base + 16 },
+      { label: "Week 4", value: base + 31 }
+    ];
+    const change = points[3].value - points[0].value;
+    return {
+      type: "numeric",
+      subtype: "Data Interpretation: Graph",
+      directions: "Use the line graph to answer the question.",
+      prompt: "By how many units did the value increase from Week 1 to Week 4?",
+      dataGraph: {
+        type: "line",
+        caption: "Weekly values",
+        yLabel: "Units",
+        points
+      },
+      answer: String(change),
+      hint: "Subtract the Week 1 value from the Week 4 value.",
+      explanation: `The increase is ${points[3].value} - ${points[0].value} = ${change}.`
+    };
+  }
+  if (variant === 9) {
+    const triangle = buildCoordinateTriangle(seed);
+    return {
+      type: "single",
+      subtype: "Data Interpretation: Coordinate Graph",
+      directions: "Use the coordinate graph to answer the question.",
+      prompt: "What is the area of triangle ABC?",
+      dataGraph: triangle.dataGraph,
+      choices: numericChoices(triangle.area, [triangle.base + triangle.height, triangle.area / 2, triangle.base * triangle.height, triangle.area + triangle.height]),
+      answer: formatNumber(triangle.area),
+      hint: "Use AB as the base and count the vertical height to C.",
+      explanation: `AB = ${triangle.base}, and the height is ${triangle.height}. Area = (1/2)(${triangle.base})(${triangle.height}) = ${formatNumber(triangle.area)}.`
+    };
+  }
+  if (variant === 10) {
+    const table = [
+      ["North", base + 18, base + 12],
+      ["South", base + 10, base + 20],
+      ["East", base + 25, base + 18],
+      ["West", base + 14, base + 17]
+    ];
+    const answer = table.filter(row => row[1] > row[2]).map(row => row[0]);
+    return {
+      type: "multiple",
+      subtype: "Data Interpretation, Select One or More",
+      directions: "Use the table to answer the question. Select all choices that apply.",
+      prompt: "For which regions is the first value greater than the second value?",
+      dataTable: {
+        caption: "Regional counts",
+        headers: ["Region", "Value A", "Value B"],
+        rows: table
+      },
+      choices: table.map(row => row[0]),
+      answer,
+      hint: "Compare the two entries in each row.",
+      explanation: `The regions with Value A greater than Value B are ${answer.join(", ")}.`
+    };
+  }
+  const points = [
+    { label: "Q1", value: base + 4 },
+    { label: "Q2", value: base + 15 },
+    { label: "Q3", value: base + 11 },
+    { label: "Q4", value: base + 22 }
   ];
-  const totalYear2 = table.reduce((total, row) => total + row[2], 0);
-  const share = table[2][2] / totalYear2 * 100;
   return {
-    type: "numeric",
-    subtype: "Data Interpretation",
-    directions: "Use the table to answer the question.",
-    prompt: "National sales in Year 2 were approximately what percent of total Year 2 sales?",
-    dataTable: {
-      caption: "Sales by market",
-      headers: ["Market", "Year 1", "Year 2"],
-      rows: table
-    },
-    answer: formatNumber(share),
-    hint: "Divide National Year 2 sales by total Year 2 sales, then multiply by 100.",
-    explanation: `Total Year 2 sales are ${totalYear2}. National's share is ${table[2][2]} / ${totalYear2} * 100 = ${formatNumber(share)}%.`
+    ...qcQuestion({
+      stem: "The line graph shows quarterly demand.",
+      quantityA: "The increase from Q1 to Q2",
+      quantityB: "The increase from Q3 to Q4",
+      answer: "C",
+      explanation: "Q1 to Q2 increases by 11, and Q3 to Q4 also increases by 11. The quantities are equal.",
+      hint: "Compare the differences between the two pairs of points."
+    }),
+    dataGraph: {
+      type: "line",
+      caption: "Quarterly demand",
+      yLabel: "Units",
+      points
+    }
   };
 }
 
@@ -2971,6 +4354,10 @@ function sum(values) {
 function formatNumber(value) {
   if (Number.isInteger(value)) return String(value);
   return String(Math.round(value * 100) / 100);
+}
+
+function formatSigned(value) {
+  return value < 0 ? `- ${Math.abs(value)}` : `+ ${value}`;
 }
 
 function qcAnswerText(answer) {
@@ -3530,6 +4917,10 @@ function renderQuestionContent(question) {
   if (question.dataTable) {
     els.questionContent.appendChild(renderDataTable(question.dataTable));
   }
+
+  if (question.dataGraph) {
+    els.questionContent.appendChild(renderDataGraph(question.dataGraph));
+  }
 }
 
 function renderDataTable(dataTable) {
@@ -3561,6 +4952,156 @@ function renderDataTable(dataTable) {
   table.appendChild(tbody);
   wrapper.appendChild(table);
   return wrapper;
+}
+
+function renderDataGraph(dataGraph) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "graph-wrap";
+  const caption = document.createElement("p");
+  caption.className = "graph-caption";
+  caption.textContent = dataGraph.caption || "Graph";
+  const frame = document.createElement("div");
+  frame.className = "graph-frame";
+  if (dataGraph.type === "coordinate") {
+    frame.innerHTML = buildCoordinateGraphSvg(dataGraph);
+  } else if (dataGraph.type === "line") {
+    frame.innerHTML = buildLineGraphSvg(dataGraph);
+  } else {
+    frame.innerHTML = buildBarGraphSvg(dataGraph);
+  }
+  wrapper.append(caption, frame);
+  return wrapper;
+}
+
+function buildBarGraphSvg(dataGraph) {
+  const bars = dataGraph.bars || [];
+  const width = 420;
+  const height = 260;
+  const left = 48;
+  const right = 18;
+  const top = 18;
+  const bottom = 42;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const maxValue = Math.max(...bars.map(bar => bar.value), 1);
+  const barGap = 16;
+  const barWidth = bars.length ? (plotWidth - barGap * (bars.length - 1)) / bars.length : plotWidth;
+  const axisY = top + plotHeight;
+  const barMarkup = bars.map((bar, index) => {
+    const barHeight = plotHeight * (bar.value / maxValue);
+    const x = left + index * (barWidth + barGap);
+    const y = axisY - barHeight;
+    return `
+      <rect class="graph-bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="4"></rect>
+      <text x="${x + barWidth / 2}" y="${axisY + 20}" text-anchor="middle">${escapeHtml(bar.label)}</text>
+      <text x="${x + barWidth / 2}" y="${y - 6}" text-anchor="middle">${formatNumber(bar.value)}</text>
+    `;
+  }).join("");
+  return `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(dataGraph.caption || "Bar graph")}">
+      <line class="graph-axis" x1="${left}" y1="${axisY}" x2="${width - right}" y2="${axisY}"></line>
+      <line class="graph-axis" x1="${left}" y1="${top}" x2="${left}" y2="${axisY}"></line>
+      <text class="graph-axis-label" x="12" y="${top + 12}">${escapeHtml(dataGraph.yLabel || "")}</text>
+      ${barMarkup}
+    </svg>
+  `;
+}
+
+function buildLineGraphSvg(dataGraph) {
+  const points = dataGraph.points || [];
+  const width = 430;
+  const height = 260;
+  const left = 50;
+  const right = 20;
+  const top = 20;
+  const bottom = 44;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const values = points.map(point => point.value);
+  const minValue = Math.min(...values, 0);
+  const maxValue = Math.max(...values, 1);
+  const span = Math.max(maxValue - minValue, 1);
+  const axisY = top + plotHeight;
+  const xFor = index => points.length === 1 ? left + plotWidth / 2 : left + (plotWidth * index) / (points.length - 1);
+  const yFor = value => axisY - ((value - minValue) / span) * plotHeight;
+  const polyline = points.map((point, index) => `${xFor(index)},${yFor(point.value)}`).join(" ");
+  const markerMarkup = points.map((point, index) => {
+    const x = xFor(index);
+    const y = yFor(point.value);
+    return `
+      <circle class="graph-point" cx="${x}" cy="${y}" r="4"></circle>
+      <text x="${x}" y="${axisY + 20}" text-anchor="middle">${escapeHtml(point.label)}</text>
+      <text x="${x}" y="${y - 9}" text-anchor="middle">${formatNumber(point.value)}</text>
+    `;
+  }).join("");
+  return `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(dataGraph.caption || "Line graph")}">
+      <line class="graph-axis" x1="${left}" y1="${axisY}" x2="${width - right}" y2="${axisY}"></line>
+      <line class="graph-axis" x1="${left}" y1="${top}" x2="${left}" y2="${axisY}"></line>
+      <text class="graph-axis-label" x="12" y="${top + 12}">${escapeHtml(dataGraph.yLabel || "")}</text>
+      <polyline class="graph-line" points="${polyline}"></polyline>
+      ${markerMarkup}
+    </svg>
+  `;
+}
+
+function buildCoordinateGraphSvg(dataGraph) {
+  const points = dataGraph.points || [];
+  const width = 430;
+  const height = 300;
+  const left = 44;
+  const right = 20;
+  const top = 18;
+  const bottom = 38;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const xMin = dataGraph.xMin ?? 0;
+  const xMax = dataGraph.xMax ?? 10;
+  const yMin = dataGraph.yMin ?? 0;
+  const yMax = dataGraph.yMax ?? 10;
+  const xFor = value => left + ((value - xMin) / (xMax - xMin)) * plotWidth;
+  const yFor = value => top + ((yMax - value) / (yMax - yMin)) * plotHeight;
+  const ticksX = graphTicks(xMin, xMax);
+  const ticksY = graphTicks(yMin, yMax);
+  const pointByLabel = Object.fromEntries(points.map(point => [point.label, point]));
+  const gridX = ticksX.map(value => `<line class="graph-grid" x1="${xFor(value)}" y1="${top}" x2="${xFor(value)}" y2="${top + plotHeight}"></line>`).join("");
+  const gridY = ticksY.map(value => `<line class="graph-grid" x1="${left}" y1="${yFor(value)}" x2="${left + plotWidth}" y2="${yFor(value)}"></line>`).join("");
+  const labelsX = ticksX.map(value => `<text x="${xFor(value)}" y="${top + plotHeight + 18}" text-anchor="middle">${value}</text>`).join("");
+  const labelsY = ticksY.map(value => `<text x="${left - 10}" y="${yFor(value) + 4}" text-anchor="end">${value}</text>`).join("");
+  const segments = (dataGraph.segments || []).map(segment => {
+    const from = pointByLabel[segment[0]];
+    const to = pointByLabel[segment[1]];
+    if (!from || !to) return "";
+    return `<line class="graph-segment" x1="${xFor(from.x)}" y1="${yFor(from.y)}" x2="${xFor(to.x)}" y2="${yFor(to.y)}"></line>`;
+  }).join("");
+  const pointMarkup = points.map(point => `
+    <circle class="graph-point" cx="${xFor(point.x)}" cy="${yFor(point.y)}" r="4"></circle>
+    <text class="graph-point-label" x="${xFor(point.x) + 8}" y="${yFor(point.y) - 8}">${escapeHtml(point.label)} (${point.x}, ${point.y})</text>
+  `).join("");
+  return `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(dataGraph.caption || "Coordinate graph")}">
+      ${gridX}
+      ${gridY}
+      <line class="graph-axis" x1="${left}" y1="${top + plotHeight}" x2="${left + plotWidth}" y2="${top + plotHeight}"></line>
+      <line class="graph-axis" x1="${left}" y1="${top}" x2="${left}" y2="${top + plotHeight}"></line>
+      ${labelsX}
+      ${labelsY}
+      <text class="graph-axis-label" x="${left + plotWidth - 10}" y="${height - 8}">${escapeHtml(dataGraph.xLabel || "x")}</text>
+      <text class="graph-axis-label" x="12" y="${top + 12}">${escapeHtml(dataGraph.yLabel || "y")}</text>
+      ${segments}
+      ${pointMarkup}
+    </svg>
+  `;
+}
+
+function graphTicks(min, max) {
+  const range = max - min;
+  const step = range <= 10 ? 1 : range <= 20 ? 2 : 5;
+  const ticks = [];
+  for (let value = Math.ceil(min / step) * step; value <= max; value += step) {
+    ticks.push(value);
+  }
+  return ticks;
 }
 
 function renderAnswerArea(question) {
@@ -3972,6 +5513,10 @@ function showReviewDetail(questionId) {
 
   if (question.dataTable) {
     els.reviewDetail.appendChild(renderDataTable(question.dataTable));
+  }
+
+  if (question.dataGraph) {
+    els.reviewDetail.appendChild(renderDataGraph(question.dataGraph));
   }
 
   const pair = document.createElement("div");

@@ -53,17 +53,23 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
   - Geometry comparison
   - Case testing
   - Cannot-be-determined cases
+  - Ratio, overlap, and statistics cases where different valid scenarios change the relationship
 
 - Arithmetic and Number Properties
   - Divisibility
   - Factors and prime factors
   - Percents
   - Ratios
+  - Unit conversions
   - Rates
+  - Probability
   - Averages and weighted averages
+  - Overlapping sets and double matrices
 
 - Algebra
   - Linear equations
+  - Quadratic equations and completing the square
+  - Polynomial factors and remainders
   - Inequalities
   - Expressions
   - Sequences
@@ -79,6 +85,8 @@ Extracted text, for topic analysis only, is stored in `../reference/GRE_Prep_tex
 
 - Data Interpretation
   - Tables
+  - Two-way matrices
+  - Bar, line, and coordinate graphs
   - Totals
   - Differences
   - Averages
