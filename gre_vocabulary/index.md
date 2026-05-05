@@ -1,7 +1,5 @@
 # GRE Vocabulary
 
-Vocabulary extracted from the Subeezy PDF sets in `C:\Users\usuario\OneDrive\Escritorio\vocabulary`, plus supplemental words from the attached study list.
-
 ## Usage Groups
 
 ### [Adjectives](adjectives.md) (88)
